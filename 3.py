@@ -1226,7 +1226,8 @@ with col1:
 
 with col2:
     # Centered title – marquee removed
-    st.markdown('<h2 style="text-align: center;">TWS Project – Exports Management</h2>', unsafe_allow_html=True)
+    # st.markdown('<h2 style="text-align: center;">TWS Project – Exports Management</h2>', unsafe_allow_html=True)
+    st.markdown('<h1 style="text-align: center; font-size: 48px; font-weight: 800; background: linear-gradient(135deg, #2563eb, #1d4ed8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px;">TWS Project – Exports Management</h1>', unsafe_allow_html=True)
     # st.markdown("**Professional Project Tracking System**")
 
 tab1, tab2, tab3 = st.tabs(["📝 Data Entry Form", "📊 Dashboard", "📁 Data Management"])
@@ -1282,7 +1283,31 @@ with tab1:
                 r_and_d_options,
                 index=rnd_index
             )
-        
+#         current_platform = st.selectbox(
+#     "🖥️ Platform",
+#     ["Below 30 HP", "30–60 HP", "60–110 HP", "Above 110 HP"],
+#     key="platform"
+# )
+#         PLATFORM_TO_PMO = {
+#     "30–60 HP": "Mohit Rana",
+#     "60–110 HP": "Arashdeep Parmar"
+# }
+# # Initialize PMO only once
+#         if "rnd_pmo" not in st.session_state:
+#          st.session_state.rnd_pmo = PLATFORM_TO_PMO.get(platform, "Mohit Rana")
+
+# # Update PMO whenever platform changes
+#         if platform in PLATFORM_TO_PMO:
+#          st.session_state.rnd_pmo = PLATFORM_TO_PMO[platform]
+
+#          r_and_d = st.selectbox(
+#     "🔬 R&D PMO",
+#     ["Mohit Rana", "Arashdeep Parmar"],
+#     key="rnd_pmo"
+# )
+
+
+
         st.markdown("---")
         st.markdown("#### 📎 Documents & Timeline")
         
@@ -1629,3 +1654,19 @@ with st.sidebar:
         - **Last Updated:** {date.today()}
         - **Columns:** {len(df.columns)}
         """)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
