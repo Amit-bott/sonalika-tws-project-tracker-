@@ -1283,31 +1283,6 @@ with tab1:
                 r_and_d_options,
                 index=rnd_index
             )
-#         current_platform = st.selectbox(
-#     "🖥️ Platform",
-#     ["Below 30 HP", "30–60 HP", "60–110 HP", "Above 110 HP"],
-#     key="platform"
-# )
-#         PLATFORM_TO_PMO = {
-#     "30–60 HP": "Mohit Rana",
-#     "60–110 HP": "Arashdeep Parmar"
-# }
-# # Initialize PMO only once
-#         if "rnd_pmo" not in st.session_state:
-#          st.session_state.rnd_pmo = PLATFORM_TO_PMO.get(platform, "Mohit Rana")
-
-# # Update PMO whenever platform changes
-#         if platform in PLATFORM_TO_PMO:
-#          st.session_state.rnd_pmo = PLATFORM_TO_PMO[platform]
-
-#          r_and_d = st.selectbox(
-#     "🔬 R&D PMO",
-#     ["Mohit Rana", "Arashdeep Parmar"],
-#     key="rnd_pmo"
-# )
-
-
-
         st.markdown("---")
         st.markdown("#### 📎 Documents & Timeline")
         
