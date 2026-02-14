@@ -618,188 +618,188 @@
 
 
 
-import streamlit as st
-import pandas as pd
-from datetime import date
+# import streamlit as st
+# import pandas as pd
+# from datetime import date
 
-# ================= CONFIG =================
-st.set_page_config(page_title="TWS Project – Exports", layout="wide")
+# # ================= CONFIG =================
+# st.set_page_config(page_title="TWS Project – Exports", layout="wide")
 
-DATA_FILE = "tws_exports.csv"
+# DATA_FILE = "tws_exports.csv"
 
-COLUMNS = [
-    "Email","Project Code","Project Description","Start of Project","Platform",
-    "Continent/Country","SCR No","SCR Issue in CFT","Model","Aggregate",
-    "Aggregate Lead","Implementation Month","R&D PMO","Feasibility Uploaded",
-    "G1 Drg Release","Material Avl","Proto Fitment","Testing Start",
-    "Interim Testing Go Ahead","G1 ORC Drg","G1 ORC Material","G1 ORC Proto",
-    "G2 Go Ahead","G2 Material","5 Tractors Online","PRR Sign-off",
-    "Pre ERN","Go Ahead ERN","BOM Change","BCR Number","BCR Date","Cut-off Number"
-]
+# COLUMNS = [
+#     "Email","Project Code","Project Description","Start of Project","Platform",
+#     "Continent/Country","SCR No","SCR Issue in CFT","Model","Aggregate",
+#     "Aggregate Lead","Implementation Month","R&D PMO","Feasibility Uploaded",
+#     "G1 Drg Release","Material Avl","Proto Fitment","Testing Start",
+#     "Interim Testing Go Ahead","G1 ORC Drg","G1 ORC Material","G1 ORC Proto",
+#     "G2 Go Ahead","G2 Material","5 Tractors Online","PRR Sign-off",
+#     "Pre ERN","Go Ahead ERN","BOM Change","BCR Number","BCR Date","Cut-off Number"
+# ]
 
-# ================= STYLE =================
-st.markdown("""
-<style>
-.stApp { background-color:#0b3c5d; }
-h1,h2,h3,label,span,p { color:white !important; }
+# # ================= STYLE =================
+# st.markdown("""
+# <style>
+# .stApp { background-color:#0b3c5d; }
+# h1,h2,h3,label,span,p { color:white !important; }
 
-input, textarea, select {
-    background-color: #000 !important;
-    color: white !important;
-}
+# input, textarea, select {
+#     background-color: #000 !important;
+#     color: white !important;
+# }
 
-div[data-baseweb="select"] > div {
-    background-color: #000 !important;
-    color: white !important;
-}
+# div[data-baseweb="select"] > div {
+#     background-color: #000 !important;
+#     color: white !important;
+# }
 
-button {
-    background-color:#111 !important;
-    color:white !important;
-    border:1px solid #444 !important;
-}
+# button {
+#     background-color:#111 !important;
+#     color:white !important;
+#     border:1px solid #444 !important;
+# }
 
-.block-container { padding:2rem; }
-</style>
-""", unsafe_allow_html=True)
+# .block-container { padding:2rem; }
+# </style>
+# """, unsafe_allow_html=True)
 
-# ================= LOAD / SAVE =================
-def load_data():
-    try:
-        return pd.read_csv(DATA_FILE)
-    except:
-        return pd.DataFrame(columns=COLUMNS)
+# # ================= LOAD / SAVE =================
+# def load_data():
+#     try:
+#         return pd.read_csv(DATA_FILE)
+#     except:
+#         return pd.DataFrame(columns=COLUMNS)
 
-def save_data(df):
-    df.to_csv(DATA_FILE, index=False)
+# def save_data(df):
+#     df.to_csv(DATA_FILE, index=False)
 
-df = load_data()
+# df = load_data()
 
-# ================= MAIN =================
-st.title("📘 TWS Project – Exports")
+# # ================= MAIN =================
+# st.title("📘 TWS Project – Exports")
 
-tab1, tab2, tab3 = st.tabs(["📝 Form", "📊 Dashboard", "📁 Data"])
+# tab1, tab2, tab3 = st.tabs(["📝 Form", "📊 Dashboard", "📁 Data"])
 
-# ================= FORM =================
-with tab1:
-    with st.form("tws_form"):
-        c1, c2 = st.columns(2)
-        email = c1.text_input("Email *")
-        project_code = c2.text_input("Project Code *")
-        project_desc = st.text_area("Project Description *")
-        start_project = st.date_input("Start of Project", date.today())
+# # ================= FORM =================
+# with tab1:
+#     with st.form("tws_form"):
+#         c1, c2 = st.columns(2)
+#         email = c1.text_input("Email *")
+#         project_code = c2.text_input("Project Code *")
+#         project_desc = st.text_area("Project Description *")
+#         start_project = st.date_input("Start of Project", date.today())
 
-        platform = st.radio("Platform",["Below 30 HP","30–60 HP","60–101 HP","Above 101 HP"])
-        continent = st.text_input("Continent / Country")
-        scr_no = st.text_input("SCR No")
-        scr_issue = st.text_input("SCR – Issue discussed in CFT")
-        model = st.text_input("Model")
+#         platform = st.radio("Platform",["Below 30 HP","30–60 HP","60–101 HP","Above 101 HP"])
+#         continent = st.text_input("Continent / Country")
+#         scr_no = st.text_input("SCR No")
+#         scr_issue = st.text_input("SCR – Issue discussed in CFT")
+#         model = st.text_input("Model")
 
-        aggregate = st.selectbox(
-            "Aggregate",
-            ["Electrical","Hydraulic","Transmission","Engine","Vehicle","Cabin"]
-        )
+#         aggregate = st.selectbox(
+#             "Aggregate",
+#             ["Electrical","Hydraulic","Transmission","Engine","Vehicle","Cabin"]
+#         )
 
-        agg_lead = st.text_input("Aggregate Lead / Project Owner")
+#         agg_lead = st.text_input("Aggregate Lead / Project Owner")
 
-        impl_month = st.selectbox(
-            "Implementation Month",
-            ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-        )
+#         impl_month = st.selectbox(
+#             "Implementation Month",
+#             ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+#         )
 
-        r_and_d = st.radio("R&D – PMO",["Mohit Rana","Arashdeep Parmar"])
+#         r_and_d = st.radio("R&D – PMO",["Mohit Rana","Arashdeep Parmar"])
 
-        feasibility = st.file_uploader("Feasibility Study Upload")
+#         feasibility = st.file_uploader("Feasibility Study Upload")
 
-        g1 = st.date_input("G1 Drg Release")
-        material = st.date_input("Material Avl")
-        proto = st.date_input("Proto Fitment")
-        testing = st.date_input("Testing Start")
-        interim = st.date_input("Interim Testing Go Ahead")
+#         g1 = st.date_input("G1 Drg Release")
+#         material = st.date_input("Material Avl")
+#         proto = st.date_input("Proto Fitment")
+#         testing = st.date_input("Testing Start")
+#         interim = st.date_input("Interim Testing Go Ahead")
 
-        g1_orc_drg = st.date_input("G1 ORC Drg Release")
-        g1_orc_mat = st.date_input("G1 ORC Material Avl")
-        g1_orc_proto = st.date_input("G1 ORC Proto Fitment")
+#         g1_orc_drg = st.date_input("G1 ORC Drg Release")
+#         g1_orc_mat = st.date_input("G1 ORC Material Avl")
+#         g1_orc_proto = st.date_input("G1 ORC Proto Fitment")
 
-        g2_go = st.date_input("G2 Go Ahead")
-        g2_mat = st.date_input("G2 Material Avl")
+#         g2_go = st.date_input("G2 Go Ahead")
+#         g2_mat = st.date_input("G2 Material Avl")
 
-        tractors = st.text_input("5 Tractors Making Online")
-        prr = st.text_input("PRR Sign-off 5 nos")
+#         tractors = st.text_input("5 Tractors Making Online")
+#         prr = st.text_input("PRR Sign-off 5 nos")
 
-        pre_ern = st.text_input("Pre ERN")
-        go_ern = st.text_input("Go Ahead ERN")
-        bom = st.text_input("BOM Change")
+#         pre_ern = st.text_input("Pre ERN")
+#         go_ern = st.text_input("Go Ahead ERN")
+#         bom = st.text_input("BOM Change")
 
-        bcr_no = st.text_input("BCR Number")
-        bcr_date = st.date_input("BCR Date")
-        cutoff = st.text_input("Cut-off Number")
+#         bcr_no = st.text_input("BCR Number")
+#         bcr_date = st.date_input("BCR Date")
+#         cutoff = st.text_input("Cut-off Number")
 
-        submit = st.form_submit_button("Submit")
+#         submit = st.form_submit_button("Submit")
 
-    if submit:
-        df.loc[len(df)] = [
-            email,project_code,project_desc,start_project,platform,
-            continent,scr_no,scr_issue,model,aggregate,agg_lead,
-            impl_month,r_and_d,feasibility.name if feasibility else "",
-            g1,material,proto,testing,interim,g1_orc_drg,
-            g1_orc_mat,g1_orc_proto,g2_go,g2_mat,tractors,prr,
-            pre_ern,go_ern,bom,bcr_no,bcr_date,cutoff
-        ]
-        save_data(df)
-        st.success("✅ Data saved successfully")
+#     if submit:
+#         df.loc[len(df)] = [
+#             email,project_code,project_desc,start_project,platform,
+#             continent,scr_no,scr_issue,model,aggregate,agg_lead,
+#             impl_month,r_and_d,feasibility.name if feasibility else "",
+#             g1,material,proto,testing,interim,g1_orc_drg,
+#             g1_orc_mat,g1_orc_proto,g2_go,g2_mat,tractors,prr,
+#             pre_ern,go_ern,bom,bcr_no,bcr_date,cutoff
+#         ]
+#         save_data(df)
+#         st.success("✅ Data saved successfully")
 
-# ================= DASHBOARD =================
-with tab2:
-    st.subheader("📊 Project Dashboard")
-    st.metric("Total Projects", len(df))
-    st.metric("G1 Completed", df["G1 Drg Release"].notna().sum())
-    st.metric("G2 Completed", df["G2 Go Ahead"].notna().sum())
+# # ================= DASHBOARD =================
+# with tab2:
+#     st.subheader("📊 Project Dashboard")
+#     st.metric("Total Projects", len(df))
+#     st.metric("G1 Completed", df["G1 Drg Release"].notna().sum())
+#     st.metric("G2 Completed", df["G2 Go Ahead"].notna().sum())
 
-# ================= DATA =================
-with tab3:
-    st.subheader("📁 All Records")
-    st.dataframe(df, use_container_width=True)
+# # ================= DATA =================
+# with tab3:
+#     st.subheader("📁 All Records")
+#     st.dataframe(df, use_container_width=True)
 
-    st.download_button(
-        "⬇️ Download Excel",
-        data=df.to_csv(index=False),
-        file_name="tws_exports.xlsx",
-        mime="application/vnd.ms-excel",
-        key="download_excel_main"
-    )
+#     st.download_button(
+#         "⬇️ Download Excel",
+#         data=df.to_csv(index=False),
+#         file_name="tws_exports.xlsx",
+#         mime="application/vnd.ms-excel",
+#         key="download_excel_main"
+#     )
 
-    st.subheader("🔄 Upload Google Sheet / CSV & Update")
+#     st.subheader("🔄 Upload Google Sheet / CSV & Update")
 
-    c1, c2 = st.columns([3,1])
+#     c1, c2 = st.columns([3,1])
 
-    with c1:
-        uploaded_csv = st.file_uploader(
-            "Upload CSV (Exported from Google Sheets)",
-            type=["csv"],
-            key="csv_upload"
-        )
+#     with c1:
+#         uploaded_csv = st.file_uploader(
+#             "Upload CSV (Exported from Google Sheets)",
+#             type=["csv"],
+#             key="csv_upload"
+#         )
 
-    with c2:
-        sync_btn = st.button("🔁 Update Data", key="sync_button")
+#     with c2:
+#         sync_btn = st.button("🔁 Update Data", key="sync_button")
 
-    if sync_btn and uploaded_csv is not None:
-        new_df = pd.read_csv(uploaded_csv)
+#     if sync_btn and uploaded_csv is not None:
+#         new_df = pd.read_csv(uploaded_csv)
 
-        if "Project Code" not in new_df.columns:
-            st.error("❌ CSV must contain 'Project Code'")
-        else:
-            for _, row in new_df.iterrows():
-                code = row["Project Code"]
+#         if "Project Code" not in new_df.columns:
+#             st.error("❌ CSV must contain 'Project Code'")
+#         else:
+#             for _, row in new_df.iterrows():
+#                 code = row["Project Code"]
 
-                if code in df["Project Code"].values:
-                    idx = df[df["Project Code"] == code].index[0]
-                    for col in new_df.columns:
-                        if col in df.columns and pd.notna(row[col]):
-                            df.at[idx, col] = row[col]
-                else:
-                    new_row = {col: row[col] if col in new_df.columns else "" for col in df.columns}
-                    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+#                 if code in df["Project Code"].values:
+#                     idx = df[df["Project Code"] == code].index[0]
+#                     for col in new_df.columns:
+#                         if col in df.columns and pd.notna(row[col]):
+#                             df.at[idx, col] = row[col]
+#                 else:
+#                     new_row = {col: row[col] if col in new_df.columns else "" for col in df.columns}
+#                     df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
 
-            save_data(df)
-            st.success("✅ CSV Sync Completed Successfully")
+#             save_data(df)
+#             st.success("✅ CSV Sync Completed Successfully")
