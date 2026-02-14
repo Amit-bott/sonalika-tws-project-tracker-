@@ -720,18 +720,3 @@ with st.sidebar:
         - **Columns:** {len(df.columns)}
         """)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
