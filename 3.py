@@ -1,757 +1,357 @@
 # import streamlit as st
 # import pandas as pd
-# from datetime import date
+# from datetime import date, datetime
 # import plotly.express as px
 # import plotly.graph_objects as go
-# from io import StringIO
 # import streamlit.components.v1 as components
+# import time
 
-# # ================= CONFIG =================
+# # ================= CONFIGURATION =================
 # st.set_page_config(
 #     page_title="TWS Project – Exports",
 #     layout="wide",
-#     initial_sidebar_state="expanded"
+#     initial_sidebar_state="expanded",
+#     page_icon="🚜"
 # )
 
 # DATA_FILE = "tws_exports.csv"
 
 # COLUMNS = [
-#     "Email","Project Code","Project Description","Start of Project","Platform",
-#     "Continent/Country","SCR No","SCR Issue in CFT","Model","Aggregate",
-#     "Aggregate Lead","Implementation Month","R&D PMO","Feasibility Uploaded",
-#     "G1 Drg Release","Material Avl","Proto Fitment","Testing Start",
-#     "Interim Testing Go Ahead","G1 ORC Drg","G1 ORC Material","G1 ORC Proto",
-#     "G2 Go Ahead","G2 Material","5 Tractors Online","PRR Sign-off",
-#     "Pre ERN","Go Ahead ERN","BOM Change","BCR Number","BCR Date","Cut-off Number"
+#     "Email", "Project Code", "Project Description", "Start of Project", "Platform",
+#     "Continent/Country", "SCR No", "SCR Issue in CFT", "Model", "Aggregate",
+#     "Aggregate Lead", "Implementation Month", "R&D PMO", 
+#     "Feasibility Study", "G1 Drg Release", "Material Avl", "Proto Fitment", "Testing Start",
+#     "Interim Testing Go Ahead", "G1 ORC Drg Release", "G1 ORC Material Avl", "G1 ORC Proto Fitment",
+#     "G2 Go Ahead", "G2 Material Avl", "5 Tractors Making on line", "PRR Sing-Off 5 nos",
+#     "Pre ERN", "Go Ahead ERN", "BOM Change", 
+#     "BCR Number", "BCR Date", "Cut-off Number",
+#     "Status", "Due Date" 
 # ]
 
-# # ================= CLEAN WHITE STYLE WITH BLUE THEME =================
+# # ================= PREMIUM CSS =================
 # st.markdown("""
 # <style>
-#     /* White Background Theme */
+#     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
 #     .stApp {
-#         background-color: #ffffff !important;
+#         background: radial-gradient(circle at 10% 20%, rgb(239, 246, 255) 0%, rgb(219, 234, 254) 90%);
+#         font-family: 'Poppins', sans-serif;
+#     }
+
+#     h1, h2, h3 {
+#         background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+#         -webkit-background-clip: text;
+#         -webkit-text-fill-color: transparent;
+#         font-weight: 800 !important;
+#     }
+
+#     /* Cards */
+#     div[data-testid="stMetric"], .stForm {
+#         background: rgba(255, 255, 255, 0.65) !important;
+#         backdrop-filter: blur(16px);
+#         border: 1px solid rgba(255, 255, 255, 0.8);
+#         border-radius: 20px !important;
+#         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 #     }
     
-#     /* Blue Headers */
-#     h1, h2, h3, h4, h5, h6 {
-#         color: #1a56db !important;
-#         font-weight: 700 !important;
-#         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-#     }
-    
-#     /* Blue Labels and Text */
-#     label, span, p, div {
-#         color: #1e40af !important;
-#     }
-    
-#     /* Dataframe Styling */
-#     .stDataFrame {
-#         border: 2px solid #1d4ed8 !important;
-#         border-radius: 10px !important;
-#     }
-    
-#     /* Blue Input Fields */
-#     input, textarea, select {
-#         background-color: #ffffff !important;
-#         color: #1e40af !important;
-#         border: 1px solid #3b82f6 !important;
+#     /* Input Fields */
+#     .stTextInput input, .stDateInput input, .stSelectbox div[data-baseweb="select"] {
+#         background-color: white !important;
 #         border-radius: 8px !important;
+#         border: 1px solid #cbd5e1 !important;
 #     }
     
-#     /* Blue Buttons */
-#     .stButton > button {
-#         background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-#         color: white !important;
-#         border: none !important;
-#         border-radius: 8px !important;
-#         font-weight: 600 !important;
-#         padding: 10px 24px !important;
-#         transition: all 0.3s ease !important;
+#     /* Fired Alert */
+#     .fired-alert {
+#         padding: 15px;
+#         background: #fee2e2;
+#         border-left: 5px solid #dc2626;
+#         color: #991b1b;
+#         font-weight: bold;
+#         border-radius: 8px;
+#         margin-bottom: 20px;
+#         animation: pulse 2s infinite;
 #     }
     
-#     .stButton > button:hover {
-#         background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
-#         transform: translateY(-2px) !important;
-#         box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3) !important;
+#     @keyframes pulse {
+#         0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+#         70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+#         100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
 #     }
-    
-#     /* Tab Styling */
-#     .stTabs [data-baseweb="tab-list"] {
-#         gap: 8px;
-#     }
-    
-#     .stTabs [data-baseweb="tab"] {
-#         background-color: #ffffff !important;
-#         color: #1e40af !important;
-#         border: 1px solid #dbeafe !important;
-#         border-radius: 8px 8px 0 0 !important;
-#         padding: 12px 24px !important;
-#     }
-    
-#     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-#         background-color: #dbeafe !important;
-#         color: #1d4ed8 !important;
-#         border-bottom: 3px solid #2563eb !important;
-#     }
-    
-#     /* Metrics Styling */
-#     [data-testid="stMetric"] {
-#         background-color: #f0f9ff !important;
-#         padding: 20px !important;
-#         border-radius: 12px !important;
-#         border: 1px solid #bae6fd !important;
-#     }
-    
-#     [data-testid="stMetricLabel"], [data-testid="stMetricValue"], [data-testid="stMetricDelta"] {
-#         color: #1e40af !important;
-#     }
-    
-#     /* Radio Buttons */
-#     .stRadio > div {
-#         background-color: #f8fafc !important;
-#         padding: 15px !important;
-#         border-radius: 10px !important;
-#         border: 1px solid #e2e8f0 !important;
-#     }
-    
-#     /* File Uploader */
-#     .stFileUploader > div {
-#         background-color: #f8fafc !important;
-#         border: 2px dashed #93c5fd !important;
-#         border-radius: 10px !important;
-#         padding: 20px !important;
-#     }
-    
-#     /* Success/Error Messages */
-#     .stAlert {
-#         border-radius: 8px !important;
-#         border: 1px solid !important;
-#     }
-    
-#     /* Sidebar Styling */
-#     section[data-testid="stSidebar"] {
-#         background-color: #f8fafc !important;
-#     }
-    
-#     /* Table Styling */
-#     .dataframe {
-#         background-color: #ffffff !important;
-#         color: #1e40af !important;
-#     }
-    
-#     /* Select Box */
-#     div[data-baseweb="select"] > div {
-#         background-color: #ffffff !important;
-#         color: #1e40af !important;
-#         border: 1px solid #3b82f6 !important;
-#     }
-    
-#     /* Checkbox */
-#     .stCheckbox > label {
-#         color: #1e40af !important;
-#     }
-    
-#     /* Divider */
-#     hr {
-#         border-color: #dbeafe !important;
-#     }
-    
-#     /* Card-like containers */
-#     .st-expander {
-#         background-color: #f8fafc !important;
-#         border: 1px solid #dbeafe !important;
-#         border-radius: 10px !important;
-#     }
-    
-#     /* Blue Scrollbar */
-#     ::-webkit-scrollbar {
-#         width: 8px;
-#         height: 8px;
-#     }
-    
-#     ::-webkit-scrollbar-track {
-#         background: #f1f5f9;
-#         border-radius: 4px;
-#     }
-    
-#     ::-webkit-scrollbar-thumb {
-#         background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-#         border-radius: 4px;
-#     }
-    
-#     ::-webkit-scrollbar-thumb:hover {
-#         background: #1d4ed8;
-#     }
-    
-#     /* Status Badges */
-#     .status-badge {
-#         display: inline-block;
-#         padding: 4px 12px;
-#         border-radius: 20px;
-#         font-size: 12px;
-#         font-weight: 600;
-#     }
-    
-#     .status-complete {
-#         background-color: #dcfce7;
-#         color: #166534;
-#     }
-    
-#     .status-pending {
-#         background-color: #fef3c7;
-#         color: #92400e;
-#     }
-    
-#     .status-progress {
-#         background-color: #dbeafe;
-#         color: #1e40af;
-#     }
+
 # </style>
 # """, unsafe_allow_html=True)
 
-# # ================= LOAD / SAVE =================
+# # ================= HELPERS =================
+
 # def load_data():
 #     try:
 #         df = pd.read_csv(DATA_FILE)
 #         if 'Project Code' in df.columns:
 #             df['Project Code'] = df['Project Code'].astype(str)
+#         for col in COLUMNS:
+#             if col not in df.columns:
+#                 df[col] = ""
+#         df = df.fillna("")
+        
+#         # Calculate Fired Logic
+#         def check(row):
+#             status = str(row.get('Status', '')).strip().lower()
+#             due = str(row.get('Due Date', '')).strip()
+#             if due and status != 'completed':
+#                 try:
+#                     if pd.to_datetime(due).date() < date.today():
+#                         return True
+#                 except:
+#                     pass
+#             return False
+            
+#         df['is_fired_calc'] = df.apply(check, axis=1)
 #         return df
 #     except:
 #         return pd.DataFrame(columns=COLUMNS)
 
 # def save_data(df):
-#     if 'Project Code' in df.columns:
-#         df['Project Code'] = df['Project Code'].astype(str)
-#     df.to_csv(DATA_FILE, index=False)
-
-# df = load_data()
-
-# # ================= LOTTIE ANIMATION (for dashboard & sidebar) =================
-# def display_lottie_animation():
-#     lottie_html = """
-#     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
-#     <dotlottie-wc src="https://lottie.host/8dd2e6af-9e9a-4464-ad99-41e7c2a723e2/AzY19wIzNy.lottie" style="width: 100px; height: 100px" autoplay loop></dotlottie-wc>
-#     """
-#     components.html(lottie_html, height=120)
-
-# # ================= PROFESSIONAL DASHBOARD =================
-# def create_dashboard():
-#     st.markdown("### 📊 Project Analytics Dashboard")
-    
-#     col1, col2, col3 = st.columns([1, 2, 1])
-#     with col2:
-#         display_lottie_animation()
-    
-#     col1, col2, col3, col4 = st.columns(4)
-#     with col1:
-#         total_projects = len(df)
-#         st.metric("Total Projects", total_projects,
-#                   delta=f"+{len(df[df['Start of Project'] == pd.Timestamp(date.today()).strftime('%Y-%m-%d')])} today" if total_projects > 0 else None)
-#     with col2:
-#         g1_completed = df["G1 Drg Release"].notna().sum()
-#         completion_rate = (g1_completed / total_projects * 100) if total_projects > 0 else 0
-#         st.metric("G1 Completed", g1_completed, delta=f"{completion_rate:.1f}%")
-#     with col3:
-#         g2_completed = df["G2 Go Ahead"].notna().sum()
-#         g2_rate = (g2_completed / total_projects * 100) if total_projects > 0 else 0
-#         st.metric("G2 Completed", g2_completed, delta=f"{g2_rate:.1f}%")
-#     with col4:
-#         active_projects = len(df[df['Implementation Month'].str.strip().str.lower() == pd.Timestamp.now().strftime('%b').lower()]) if 'Implementation Month' in df.columns else 0
-#         st.metric("Active This Month", active_projects)
-    
-#     st.markdown("---")
-    
-#     if not df.empty:
-#         col1, col2 = st.columns(2)
-#         with col1:
-#             if 'Platform' in df.columns:
-#                 platform_counts = df['Platform'].value_counts()
-#                 fig = go.Figure(data=[go.Bar(x=platform_counts.index, y=platform_counts.values,
-#                                               marker_color='#2563eb', text=platform_counts.values, textposition='auto')])
-#                 fig.update_layout(title='Projects by Platform', paper_bgcolor='white', plot_bgcolor='white',
-#                                   font=dict(color='#1e40af'), height=400)
-#                 st.plotly_chart(fig, use_container_width=True)
-#         with col2:
-#             if 'Aggregate' in df.columns:
-#                 aggregate_counts = df['Aggregate'].value_counts()
-#                 fig = go.Figure(data=[go.Pie(labels=aggregate_counts.index, values=aggregate_counts.values, hole=.3,
-#                                              marker=dict(colors=['#2563eb', '#1d4ed8', '#1e40af', '#3730a3', '#312e81']))])
-#                 fig.update_layout(title='Projects by Aggregate Type', paper_bgcolor='white', plot_bgcolor='white',
-#                                   font=dict(color='#1e40af'), height=400)
-#                 st.plotly_chart(fig, use_container_width=True)
-    
-
-
-
-
-
-
-#     st.markdown("### 📋 Recent Projects")
-#     if not df.empty:
-#         if 'Start of Project' in df.columns:
-#             try:
-#                 df_display = df.copy()
-#                 df_display['Start of Project'] = pd.to_datetime(df_display['Start of Project'], errors='coerce')
-#                 recent_df = df_display.sort_values('Start of Project', ascending=False).head(10)
-#             except:
-#                 recent_df = df.head(10)
-#         else:
-#             recent_df = df.head(10)
-#         display_cols = [ 'Email','Project Code', 'Project Description', 'Platform','Start of project','Continent/Country','SCR No','SCR-Issue Discussed in CFT','Model', 'Aggregate', 'Aggregate Lead', 'Implementation Month','R&D-PMO']
-#         display_cols = [col for col in display_cols if col in recent_df.columns]
-#         st.dataframe(recent_df[display_cols], width='stretch')
-#     else:
-#         st.info("No projects available. Add your first project in the Data Entry tab.")
+#     try:
+#         # Remove helper col if exists
+#         save_df = df.copy()
+#         if 'is_fired_calc' in save_df.columns:
+#             del save_df['is_fired_calc']
+        
+#         if 'Project Code' in save_df.columns:
+#             save_df['Project Code'] = save_df['Project Code'].astype(str)
+            
+#         for col in COLUMNS:
+#             if col not in save_df.columns:
+#                 save_df[col] = ""
+                
+#         save_df = save_df[COLUMNS]
+#         save_df.to_csv(DATA_FILE, index=False)
+#         return True
+#     except Exception as e:
+#         st.error(str(e))
+#         return False
 
 # # ================= MAIN =================
-# # ========= HEADER WITH 300px LOTTIE + CENTERED TITLE (NO SCROLL) =========
-# col1, col2 = st.columns([1, 3])
 
-# with col1:
-#     components.html("""
-#     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
-#     <dotlottie-wc
-#       src="https://lottie.host/8dd2e6af-9e9a-4464-ad99-41e7c2a723e2/AzY19wIzNy.lottie"
-#       style="width: 200px; height: 200px"
-#       autoplay
-#       loop
-#     ></dotlottie-wc>
-#     """, height=320)
-
-# with col2:
-#     # Centered title – marquee removed
-#     # st.markdown('<h2 style="text-align: center;">TWS Project – Exports Management</h2>', unsafe_allow_html=True)
-#     st.markdown('<h1 style="text-align: center; font-size: 48px; font-weight: 800; background: linear-gradient(135deg, #2563eb, #1d4ed8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px;">TWS Project – Exports Management</h1>', unsafe_allow_html=True)
-#     # st.markdown("**Professional Project Tracking System**")
-
-# tab1, tab2, tab3 = st.tabs(["📝 Data Entry Form", "📊 Dashboard", "📁 Data Management"])
-
-# # ================= FORM TAB =================
-# with tab1:
-#     st.markdown("### ✨ New Project Entry")
-    
-#     with st.form("tws_form"):
-#         col1, col2 = st.columns(2)
-        
-#         with col1:
-#             email = st.text_input("📧 Email *", placeholder="user@company.com")
-#             project_code = st.text_input("🔢 Project Code *", placeholder="PRJ-XXXX-YY")
-#             project_desc = st.text_area("📝 Project Description *", height=100)
-#             start_project = st.date_input("📅 Start of Project", date.today())
-            
-#             # ----- Platform selection with key for dynamic default -----
-#             platform = st.selectbox(
-#                 "🖥️ Platform",
-#                 ["Below 30 HP", "30–60 HP", "60–101 HP", "Above 101 HP"],
-#                 key="platform_select"
-#             )
-            
-#             continent = st.text_input("🌍 Continent / Country", placeholder="North America / USA")
-#             scr_no = st.text_input("📄 SCR Number", placeholder="SCR-XXXX")
-            
-#         with col2:
-#             scr_issue = st.text_input("🔧 SCR Issue in CFT", placeholder="Issue discussed in cross-functional team")
-#             model = st.text_input("🚜 Model", placeholder="Model name/number")
-#             aggregate = st.selectbox(
-#                 "🔩 Aggregate",
-#                 ["Electrical", "Hydraulic", "Transmission", "Engine", "Vehicle", "Cabin"]
-#             )
-#             agg_lead = st.text_input("👨‍💼 Aggregate Lead", placeholder="Lead person name")
-
-#             imp_month = st.date_input("📅 Implementation Month", date.today())
-            
-#             # ----- R&D PMO with dynamic default based on platform -----
-#             r_and_d_options = ["Mohit Rana", "Arashdeep Parmar"]
-#             # Read current platform from session state
-#             current_platform = st.session_state.get("platform_select", "Below 30 HP")
-#             if "30–60 HP" in current_platform:
-#                 default_rnd = "Mohit Rana"
-#             elif "60–101 HP" in current_platform:
-#                 default_rnd = "Arashdeep Parmar"
-#             else:
-#                 default_rnd = "Mohit Rana"   # fallback
-#             rnd_index = r_and_d_options.index(default_rnd) if default_rnd in r_and_d_options else 0
-            
-#             r_and_d = st.selectbox(
-#                 "🔬 R&D PMO",
-#                 r_and_d_options,
-#                 index=rnd_index
-#             )
-#         st.markdown("---")
-#         st.markdown("#### 📎 Documents & Timeline")
-        
-#         col1, col2 = st.columns(2)
-#         with col1:
-#             feasibility = st.file_uploader("📎 Feasibility Study", type=['pdf', 'docx', 'doc'])
-#             g1 = st.date_input("📐 G1 Drg Release")
-#             material = st.date_input("📦 Material Avl")
-#             proto = st.date_input("🔧 Proto Fitment")
-#             testing = st.date_input("🧪 Testing Start")
-#             interim = st.date_input("✅ Interim Testing Go Ahead")
-#             g1_orc_drg = st.date_input("🔄 G1 ORC Drg.Release")
-#             # g1_orc_mat = st.date_input("📦 G1 ORC Material Avl")
-#         with col2:
-#             # g1_orc_drg = st.date_input("🔄 G1 ORC Drg.Release")
-#             g1_orc_mat = st.date_input("📦 G1 ORC Material Avl")
-#             g1_orc_proto = st.date_input("🔧 G1 ORC Proto fitment")
-#             g2_go = st.date_input("🚀 G2 Go Ahead")
-#             g2_mat = st.date_input("📦 G2 Material Avl")
-#             g2_mat = st.date_input("5 tractors Making on line")
-#             g2_mat = st.date_input (" PRR Sing-Off 5 nos")
-#             g2_mat = st.date_input (" Pre ERN")
-#             g2_mat = st.date_input ("Go Ahead ERN")
-#             # g2_mat = st.date_input ("")
-#         st.markdown("---")
-#         st.markdown("#### 🏭 Production & Approvals")
-#         col1, col2, col3 = st.columns(3)
-#         with col1:
-#             bcr_no = st.text_input("🔢 BCR Number", placeholder="Reference")
-#             bcr_date = st.date_input("📅 BCR Date")
-#             cutoff = st.text_input("✂️ Cut-off Number", placeholder="Reference")
-        
-#         submit = st.form_submit_button("🚀 Submit Project", use_container_width=True)
-    
-#     if submit:
-#         if not email or not project_code or not project_desc:
-#             st.error("❌ Please fill all required fields (*)")
-#         else:
-#             project_code_str = str(project_code)
-#             if not df.empty and 'Project Code' in df.columns:
-#                 df['Project Code'] = df['Project Code'].astype(str)
-#                 if project_code_str in df['Project Code'].values:
-#                     st.warning("⚠️ Project Code already exists! Updating existing record...")
-#                     idx = df[df['Project Code'] == project_code_str].index[0]
-#                     update_record = True
-#                 else:
-#                     idx = len(df)
-#                     update_record = False
-#             else:
-#                 update_record = False
-            
-#             def format_date(date_val):
-#                 if pd.isna(date_val) or date_val is None:
-#                     return ""
-#                 return date_val.strftime('%Y-%m-%d') if hasattr(date_val, 'strftime') else str(date_val)
-            
-#             new_data = {
-#                 "Email": str(email),
-#                 "Project Code": project_code_str,
-#                 "Project Description": str(project_desc),
-#                 "Start of Project": format_date(start_project),
-#                 "Platform": str(platform),
-#                 "Continent/Country": str(continent),
-#                 "SCR No": str(scr_no),
-#                 "SCR Issue in CFT": str(scr_issue),
-#                 "Model": str(model),
-#                 "Aggregate": str(aggregate),
-#                 "Aggregate Lead": str(agg_lead),
-#                 "Implementation Month": format_date(imp_month),
-#                 "R&D PMO": str(r_and_d),
-#                 "Feasibility Uploaded": feasibility.name if feasibility else "",
-#                 "G1 Drg Release": format_date(g1),
-#                 "Material Avl": format_date(material),
-#                 "Proto Fitment": format_date(proto),
-#                 "Testing Start": format_date(testing),
-#                 "Interim Testing Go Ahead": format_date(interim),
-#                 "G1 ORC Drg Release ": format_date(g1_orc_drg),
-#                 "G1 ORC Material Avl": format_date(g1_orc_mat),
-#                 "G1 ORC Proto Fitment": format_date(g1_orc_proto),
-#                 "G2 Go Ahead": format_date(g2_go),
-#                 "G2 Material Avl": format_date(g2_mat),
-#                 #  "G1 ORC Drg.Release": format_date(g1_orc_drg ),
-#                 "5 tractors Making on line": format_date( g2_mat),
-#                 "PRR Sing-Off 5 nos": format_date( g2_mat),
-#                 "Pre ERN": format_date( g2_mat),
-#                 "Go Ahead ERN": format_date ( g2_mat) ,
-#                 "BCR Number": str(bcr_no),
-#                 "BCR Date": format_date(bcr_date),
-#                 "Cut-off Number": str(cutoff)
-#                 #    g2_mat = st.date_input("5 tractors Making on line")
-#             # g2_mat = st.date_input (" PRR Sing-Off 5 nos")
-#             # g2_mat = st.date_input (" Pre ERN")
-#             # g2_mat = st.date_input ("Go Ahead ERN")
-#             }
-            
-#             if update_record:
-#                 for key, value in new_data.items():
-#                     if key in df.columns:
-#                         df.at[idx, key] = value
-#                 st.success(f"✅ Project {project_code} updated successfully!")
-#             else:
-#                 for col in COLUMNS:
-#                     if col not in new_data:
-#                         new_data[col] = ""
-#                 df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
-#                 st.success(f"✅ New project {project_code} added successfully!")
-            
-#             save_data(df)
-#             df = load_data()
-
-# # ================= DASHBOARD TAB =================
-# with tab2:
-#     create_dashboard()
-
-# # ================= DATA MANAGEMENT TAB =================
-# with tab3:
-#     st.markdown("### 📁 Data Management Center")
-#     col1, col2, col3 = st.columns([1, 2, 1])
+# def main():
+#     # Header
+#     col1, col2 = st.columns([1,5])
+#     with col1:
+#          # Lottie Animation
+#         components.html("""
+#         <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
+#         <dotlottie-wc src="https://lottie.host/8dd2e6af-9e9a-4464-ad99-41e7c2a723e2/AzY19wIzNy.lottie" autoplay loop style="width: 100px; height: 100px;"></dotlottie-wc>
+#         """, height=120)
 #     with col2:
-#         display_lottie_animation()
+#         st.title("TWS Project Exports")
+#         st.caption("Premium Tracking System")
+
+#     df = load_data()
     
-#     mgmt_tab1, mgmt_tab2, mgmt_tab3 = st.tabs(["📊 View & Edit All Data", "📤 Import from Google Sheets", "⚙️ Bulk Operations"])
-    
-#     with mgmt_tab1:
-#         st.markdown("#### 📋 Complete Project Database")
-#         if not df.empty:
-#             col1, col2 = st.columns([3, 1])
-#             with col1:
-#                 search_term = st.text_input("🔍 Search across all columns:", placeholder="Type to search...", key="search_all")
-#             show_cols = st.multiselect(
-#                 "Filter Columns:",
-#                 options=df.columns.tolist(),
-#                 default=df.columns.tolist()[:min(8, len(df.columns))] if len(df.columns) > 8 else df.columns.tolist(),
-#                 key="filter_cols"
-#             )
-#             if search_term:
-#                 mask = df.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)
-#                 display_df = df[mask]
-#             else:
-#                 display_df = df
-#             if not show_cols:
-#                 show_cols = df.columns.tolist()
-#             st.markdown(f"**Showing {len(display_df)} of {len(df)} records**")
-#             st.dataframe(display_df[show_cols], width='stretch')
-            
-#             col1, col2, col3 = st.columns(3)
-#             with col1:
-#                 if st.button("🔄 Refresh Data", use_container_width=True, key="refresh_all"):
-#                     df = load_data()
-#                     st.rerun()
-#             with col2:
-#                 if st.button("📥 Export to CSV", use_container_width=True, key="export_csv"):
-#                     csv = df.to_csv(index=False)
-#                     st.download_button(label="⬇️ Download CSV", data=csv,
-#                                        file_name=f"tws_exports_{date.today()}.csv", mime="text/csv", use_container_width=True)
-#             with col3:
-#                 if not df.empty:
-#                     project_to_delete = st.selectbox("Select project to delete:", options=df['Project Code'].astype(str).tolist(), key="delete_select")
-#                     if st.button("🗑️ Delete Selected", use_container_width=True, key="delete_btn"):
-#                         df = df[df['Project Code'].astype(str) != project_to_delete]
-#                         save_data(df)
-#                         st.success(f"✅ Project {project_to_delete} deleted successfully!")
-#                         st.rerun()
-#         else:
-#             st.info("📭 No data available. Add your first project or import data.")
-    
-#     with mgmt_tab2:
-#         st.markdown("#### 📤 Import from Google Sheets/CSV")
-#         st.info("Upload a CSV file exported from Google Sheets to update your database.")
-#         uploaded_file = st.file_uploader("Choose a CSV file", type=['csv'], help="Upload CSV file with matching column names", key="csv_uploader")
-#         if uploaded_file is not None:
-#             try:
-#                 new_data = pd.read_csv(uploaded_file)
-#                 st.markdown("##### 📄 File Preview (First 5 rows):")
-#                 st.dataframe(new_data.head(), width='stretch')
-#                 st.markdown(f"**File contains {len(new_data)} rows and {len(new_data.columns)} columns**")
-#                 if 'Project Code' not in new_data.columns:
-#                     st.error("❌ CSV must contain 'Project Code' column!")
-#                 else:
-#                     st.markdown("##### 🔄 Column Mapping")
-#                     mapping_df = pd.DataFrame({
-#                         'CSV Columns': new_data.columns,
-#                         'Database Columns': [col if col in COLUMNS else '❌ No match' for col in new_data.columns]
-#                     })
-#                     st.dataframe(mapping_df, width='stretch')
-#                     st.markdown("##### ⚙️ Import Options")
-#                     import_mode = st.radio("Select import mode:", ["Update Existing & Add New", "Replace Entire Database", "Add New Only"], key="import_mode")
-#                     conflict_resolution = st.radio("If project exists:", ["Update with new data", "Keep existing data", "Skip record"], key="conflict_res")
-#                     if st.button("🚀 Process Import", use_container_width=True, key="process_import"):
-#                         with st.spinner("Processing import..."):
-#                             if import_mode == "Replace Entire Database":
-#                                 df = new_data
-#                                 save_data(df)
-#                                 st.success("✅ Database replaced successfully!")
-#                             else:
-#                                 updated_count = 0
-#                                 added_count = 0
-#                                 skipped_count = 0
-#                                 new_data['Project Code'] = new_data['Project Code'].astype(str)
-#                                 if not df.empty:
-#                                     df['Project Code'] = df['Project Code'].astype(str)
-#                                 for idx, row in new_data.iterrows():
-#                                     project_code = str(row.get('Project Code', ''))
-#                                     if not df.empty and project_code in df['Project Code'].values:
-#                                         if import_mode == "Update Existing & Add New":
-#                                             if conflict_resolution == "Update with new data":
-#                                                 db_idx = df[df['Project Code'] == project_code].index[0]
-#                                                 for col in new_data.columns:
-#                                                     if col in df.columns and pd.notna(row[col]):
-#                                                         df.at[db_idx, col] = row[col]
-#                                                 updated_count += 1
-#                                             elif conflict_resolution == "Skip record":
-#                                                 skipped_count += 1
-#                                             else:
-#                                                 skipped_count += 1
-#                                     else:
-#                                         if import_mode in ["Update Existing & Add New", "Add New Only"]:
-#                                             new_row = {}
-#                                             for col in COLUMNS:
-#                                                 if col in new_data.columns:
-#                                                     new_row[col] = row[col] if pd.notna(row.get(col)) else ""
-#                                                 else:
-#                                                     new_row[col] = ""
-#                                             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-#                                             added_count += 1
-#                                 save_data(df)
-#                                 st.success(f"""
-#                                 ✅ **Import Completed!**
-#                                 **Summary:**
-#                                 - 📝 Records updated: **{updated_count}**
-#                                 - ➕ New records added: **{added_count}**
-#                                 - ⏭️ Records skipped: **{skipped_count}**
-#                                 - 📊 Total records now: **{len(df)}**
-#                                 """)
-#                         st.rerun()
-#             except Exception as e:
-#                 st.error(f"❌ Error reading file: {str(e)}")
-    
-#     with mgmt_tab3:
-#         st.markdown("#### ⚙️ Bulk Operations")
-#         col1, col2 = st.columns(2)
-#         with col1:
-#             st.markdown("##### 🗑️ Delete Operations")
-#             if not df.empty:
-#                 st.markdown("**Delete by Project Code:**")
-#                 projects_to_delete = st.multiselect("Select projects to delete:", options=df['Project Code'].astype(str).tolist(), help="Select projects to delete", key="bulk_delete")
-#                 if projects_to_delete and st.button("🗑️ Delete Selected Projects", use_container_width=True, key="bulk_delete_btn"):
-#                     df = df[~df['Project Code'].astype(str).isin(projects_to_delete)]
-#                     save_data(df)
-#                     st.success(f"✅ Deleted {len(projects_to_delete)} projects!")
-#                     st.rerun()
-#                 st.markdown("**Clean Duplicates:**")
-#                 if st.button("🔍 Find & Remove Duplicates", use_container_width=True, key="remove_dups"):
-#                     if not df.empty and 'Project Code' in df.columns:
-#                         duplicates = df.duplicated(subset=['Project Code'], keep='first')
-#                         if duplicates.any():
-#                             st.warning(f"Found {duplicates.sum()} duplicate project codes!")
-#                             df = df.drop_duplicates(subset=['Project Code'], keep='first')
-#                             save_data(df)
-#                             st.success("✅ Duplicates removed!")
-#                         else:
-#                             st.info("✅ No duplicates found!")
-#         with col2:
-#             st.markdown("##### 🔄 Batch Update")
-#             if not df.empty:
-#                 st.markdown("**Update Field for Multiple Projects:**")
-#                 update_field = st.selectbox("Select field to update:", options=[col for col in df.columns if col not in ['Project Code', 'Email']], key="batch_field")
-#                 update_value = st.text_input(f"New value for {update_field}:", placeholder="Enter new value...", key="batch_value")
-#                 projects_to_update = st.multiselect("Select projects to update:", options=df['Project Code'].astype(str).tolist(), key="batch_projects")
-#                 if update_value and projects_to_update and st.button("🔄 Apply Batch Update", use_container_width=True, key="batch_update_btn"):
-#                     df.loc[df['Project Code'].astype(str).isin(projects_to_update), update_field] = update_value
-#                     save_data(df)
-#                     st.success(f"✅ Updated {len(projects_to_update)} projects!")
-#                     st.rerun()
+#     # Check Fired Count
+#     fired_count = 0
+#     if not df.empty and 'is_fired_calc' in df.columns:
+#         fired_count = df['is_fired_calc'].sum()
         
-#         st.markdown("---")
-#         st.markdown("##### 🚨 Database Management")
-#         col1, col2, col3 = st.columns(3)
-#         with col1:
-#             if st.button("📊 Backup Database", use_container_width=True, key="backup_btn"):
-#                 backup_file = f"tws_backup_{date.today()}.csv"
-#                 df.to_csv(backup_file, index=False)
-#                 st.success(f"✅ Backup saved as {backup_file}")
-#         with col2:
-#             if st.button("🧹 Clear All Data", use_container_width=True, key="clear_all"):
-#                 confirm = st.checkbox("⚠️ I understand this will delete ALL data permanently", key="confirm_clear")
-#                 if confirm:
-#                     df = pd.DataFrame(columns=COLUMNS)
-#                     save_data(df)
-#                     st.error("🗑️ All data cleared!")
-#                     st.rerun()
-#         with col3:
-#             if st.button("🔍 Validate Data", use_container_width=True, key="validate_btn"):
-#                 if not df.empty:
-#                     missing_email = df['Email'].isna().sum() if 'Email' in df.columns else 0
-#                     missing_code = df['Project Code'].isna().sum() if 'Project Code' in df.columns else 0
-#                     if missing_email + missing_code == 0:
-#                         st.success("✅ All data is valid!")
+#     if fired_count > 0:
+#         st.markdown(f'<div class="fired-alert">🔥 ALERT: {fired_count} Projects are FIRED (Overdue & Incomplete)</div>', unsafe_allow_html=True)
+
+#     # Navigation
+#     tab1, tab2, tab3 = st.tabs(["📝 Form", "📈 Dashboard", "🗃️ Professional Database"])
+
+#     # === TAB 1: FORM ===
+#     with tab1:
+#         with st.form("main_form", clear_on_submit=False):
+#             # Block 1
+#             st.info("📋 **Basic Details**")
+#             with st.expander("General Info", expanded=True):
+#                 c1, c2, c3 = st.columns(3)
+#                 email = c1.text_input("📧 Email")
+#                 pcode = c1.text_input("🔢 Project Code")
+#                 desc = c1.text_area("📝 Description")
+#                 start = c1.date_input("📅 Start Date", value=None)
+                
+#                 plat = c2.selectbox("Platform", ["Below 30 HP", "30–60 HP", "60–101 HP", "Above 101 HP"])
+#                 cont = c2.text_input("Continent")
+#                 scr = c2.text_input("SCR No")
+#                 scri = c2.text_input("SCR Issue")
+                
+#                 mod = c3.text_input("Model")
+#                 agg = c3.selectbox("Aggregate", ["Engine", "Transmission", "Hydraulics", "Electrical", "Vehicle", "Cabin"])
+#                 owner = c3.text_input("Owner / Lead")
+#                 imp = c3.date_input("Imp Month", value=None)
+                
+#                 c2.markdown("**Status**")
+#                 stat = c2.selectbox("Status", ["Pending", "In Progress", "Completed"])
+#                 due = c3.date_input("Due Date", value=None)
+#                 rnd = c3.selectbox("RnD PMO", ["Mohit Rana", "Arashdeep Parmar"])
+
+#             # Block 2
+#             st.success("🏗️ **Milestones**")
+#             with st.expander("Milestone Tracking", expanded=True):
+#                 c1, c2, c3 = st.columns(3)
+#                 # G1
+#                 feas = c1.file_uploader("Feasibility")
+#                 g1d = c1.date_input("G1 Drg Release", value=None)
+#                 mat = c1.date_input("Material Avl", value=None)
+#                 pro = c1.date_input("Proto Fitment", value=None)
+#                 tst = c1.date_input("Test Start", value=None)
+#                 int_g = c1.date_input("Interim Go", value=None)
+                
+#                 # ORC / G2
+#                 orc_d = c2.date_input("G1 ORC Drg", value=None)
+#                 orc_m = c2.date_input("G1 ORC Mat", value=None)
+#                 orc_p = c2.date_input("G1 ORC Proto", value=None)
+#                 g2_g = c2.date_input("G2 Go Ahead", value=None)
+#                 g2_m = c2.date_input("G2 Material", value=None)
+#                 trac = c2.date_input("5 Tractors Online", value=None)
+                
+#                 # ERN
+#                 prr = c3.date_input("PRR Signoff", value=None)
+#                 pre = c3.date_input("Pre ERN", value=None)
+#                 goe = c3.date_input("Go Ahead ERN", value=None)
+#                 bom = c3.text_input("BOM Change")
+
+#             # Block 3
+#             st.warning("📈 **Implementation**")
+#             with st.expander("Final Phase", expanded=True):
+#                 x1, x2, x3 = st.columns(3)
+#                 bcrn = x1.text_input("BCR No")
+#                 bcrd = x2.date_input("BCR Date", value=None)
+#                 cutn = x3.text_input("Cutoff No")
+                
+#             submitted = st.form_submit_button("🚀 Save Project")
+#             if submitted:
+#                 if not email or not pcode:
+#                     st.error("Email and Code required!")
+#                 else:
+#                     def fmt(d): return d.strftime("%Y-%m-%d") if d else ""
+#                     # Create dict
+#                     data = {
+#                         "Email": email, "Project Code": pcode, "Project Description": desc, "Start of Project": fmt(start),
+#                         "Platform": plat, "Continent/Country": cont, "SCR No": scr, "SCR Issue in CFT": scri,
+#                         "Model": mod, "Aggregate": agg, "Aggregate Lead": owner, "Implementation Month": fmt(imp),
+#                         "R&D PMO": rnd, "Status": stat, "Due Date": fmt(due),
+#                         "Feasibility Study": f"File: {feas.name}" if feas else "",
+#                         "G1 Drg Release": fmt(g1d), "Material Avl": fmt(mat), "Proto Fitment": fmt(pro),
+#                         "Testing Start": fmt(tst), "Interim Testing Go Ahead": fmt(int_g),
+#                         "G1 ORC Drg Release": fmt(orc_d), "G1 ORC Material Avl": fmt(orc_m), "G1 ORC Proto Fitment": fmt(orc_p),
+#                         "G2 Go Ahead": fmt(g2_g), "G2 Material Avl": fmt(g2_m), "5 Tractors Making on line": fmt(trac),
+#                         "PRR Sing-Off 5 nos": fmt(prr), "Pre ERN": fmt(pre), "Go Ahead ERN": fmt(goe), "BOM Change": bom,
+#                         "BCR Number": bcrn, "BCR Date": fmt(bcrd), "Cut-off Number": cutn
+#                     }
+                    
+#                     # Save Logic
+#                     if not df.empty and pcode in df['Project Code'].values:
+#                         idx = df[df['Project Code']==pcode].index[0]
+#                         for k,v in data.items(): df.at[idx,k] = v
+#                         st.toast("Updated!")
 #                     else:
-#                         st.warning(f"""
-#                         ⚠️ **Data Issues Found:**
-#                         - Missing Email: {missing_email}
-#                         - Missing Project Code: {missing_code}
-#                         """)
+#                         new_row = pd.DataFrame([data])
+#                         df = pd.concat([df, new_row], ignore_index=True)
+#                         st.toast("Created!")
+                    
+#                     save_data(df)
+#                     time.sleep(1)
+#                     st.rerun()
 
-# # ================= SIDEBAR =================
-# with st.sidebar:
-#     lottie_sidebar = """
-#     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
-#     <dotlottie-wc src="https://lottie.host/8dd2e6af-9e9a-4464-ad99-41e7c2a723e2/AzY19wIzNy.lottie" style="width: 80px; height: 80px" autoplay loop></dotlottie-wc>
-#     """
-#     components.html(lottie_sidebar, height=100)
-    
-#     st.markdown("### TWS Exports")
-#     st.markdown("**Project Management**")
-#     st.markdown("---")
-#     st.markdown("### 📈 Quick Stats")
-#     if not df.empty:
-#         total_projects = len(df)
-#         active_this_month = len(df[df['Implementation Month'].str.strip().str.lower() == pd.Timestamp.now().strftime('%b').lower()]) if 'Implementation Month' in df.columns else 0
-#         g1_complete = df['G1 Drg Release'].notna().sum() if 'G1 Drg Release' in df.columns else 0
-#         st.metric("Total Projects", total_projects)
-#         st.metric("Active This Month", active_this_month)
-#         st.metric("G1 Complete", g1_complete)
-#     else:
-#         st.info("No data yet")
-#     st.markdown("---")
-#     st.markdown("### ⚡ Quick Actions")
-#     if st.button("➕ Add New Project", use_container_width=True, key="sidebar_new"):
-#         st.session_state.current_tab = "📝 Data Entry Form"
-#         st.rerun()
-#     if not df.empty:
-#         csv = df.to_csv(index=False)
-#         st.download_button(label="📥 Export Data", data=csv, file_name="tws_exports.csv", mime="text/csv", use_container_width=True, key="sidebar_export")
-#     st.markdown("---")
-#     st.markdown("### 📅 Recent Activity")
-#     if not df.empty:
-#         try:
-#             if 'Start of Project' in df.columns:
-#                 df_recent = df.copy()
-#                 df_recent['Start of Project'] = pd.to_datetime(df_recent['Start of Project'], errors='coerce')
-#                 recent = df_recent.sort_values('Start of Project', ascending=False).head(3)
-#             else:
-#                 recent = df.head(3)
-#             for _, row in recent.iterrows():
-#                 project_code = str(row.get('Project Code', 'N/A'))
-#                 platform = str(row.get('Platform', 'N/A'))
-#                 aggregate = str(row.get('Aggregate', 'N/A'))
-#                 st.markdown(f"**{project_code}**")
-#                 st.markdown(f"*{platform} - {aggregate}*")
-#                 st.markdown("---")
-#         except:
-#             st.info("Could not load recent activity")
-#     st.markdown("---")
-#     st.markdown("#### 📊 Database Info")
-#     if not df.empty:
-#         st.markdown(f"""
-#         - **Size:** {len(df)} records
-#         - **Last Updated:** {date.today()}
-#         - **Columns:** {len(df.columns)}
-#         """)
+#     # === TAB 2: DASHBOARD (Simplified) ===
+#     with tab2:
+#         if not df.empty:
+#             m1, m2, m3 = st.columns(3)
+#             m1.metric("Total", len(df))
+#             m2.metric("Fired", fired_count)
+#             m3.metric("Completed", len(df[df['Status']=='Completed']))
+            
+#             # Simple Chart
+#             st.plotly_chart(px.bar(df['Platform'].value_counts(), title="By Platform", color_discrete_sequence=['#2563eb']), use_container_width=True)
 
+#     # === TAB 3: PROFESSIONAL TABLE ===
+#     with tab3:
+#         st.markdown("### 🗃️ Professional Database View")
+        
+#         # Search
+#         term = st.text_input("🔍 Search", placeholder="Project Code, Model, etc...")
+        
+#         view_df = df.copy()
+#         if term:
+#             mask = view_df.astype(str).apply(lambda x: x.str.contains(term, case=False)).any(axis=1)
+#             view_df = view_df[mask]
+            
+#         if not view_df.empty:
+#             # HTML GENERATION
+#             rows_html = ""
+#             for _, row in view_df.iterrows():
+#                 # Logic
+#                 stat = str(row.get('Status','')).capitalize()
+#                 fired = row.get('is_fired_calc', False)
+                
+#                 row_style = ""
+#                 badge_style = "background: #e2e8f0; color: #475569;" # default grey
+                
+#                 # Strikethrough Logic
+#                 if fired:
+#                     row_style = "text-decoration: line-through; background-color: #fef2f2 !important; color: #991b1b;"
+#                     badge_style = "background: #fee2e2; color: #991b1b;"
+#                     stat = "FIRED"
+#                 elif stat == "Completed":
+#                     row_style = "text-decoration: line-through; background-color: #f8fafc; color: #94a3b8;"
+#                     badge_style = "background: #dcfce7; color: #166534;"
+#                 elif stat == "In progress":
+#                     badge_style = "background: #dbeafe; color: #1e40af;"
 
+#                 # Build row
+#                 rows_html += f"""
+#                 <tr style="{row_style}; border-bottom: 1px solid #f1f5f9; transition: all 0.2s;">
+#                     <td style="padding: 12px;"><span style="{badge_style} padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">{stat}</span></td>
+#                     <td style="padding: 12px; font-weight: 600;">{row.get('Project Code','')}</td>
+#                     <td style="padding: 12px;">{row.get('Email','')}</td>
+#                     <td style="padding: 12px;">{row.get('Platform','')}</td>
+#                     <td style="padding: 12px;">{row.get('Model','')}</td>
+#                     <td style="padding: 12px;">{row.get('Aggregate Lead','')}</td>
+#                     <td style="padding: 12px;">{row.get('Due Date','')}</td>
+#                 </tr>
+#                 """
+            
+#             # Full Table
+#             table_html = f"""
+#             <div style="overflow-x: auto; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+#                 <table style="width: 100%; border-collapse: collapse; font-family: 'Poppins', sans-serif; font-size: 14px; background: white;">
+#                     <thead style="background: linear-gradient(90deg, #1e3a8a, #2563eb); color: white;">
+#                         <tr>
+#                             <th style="padding: 14px; text-align: left;">Status</th>
+#                             <th style="padding: 14px; text-align: left;">Code</th>
+#                             <th style="padding: 14px; text-align: left;">Email</th>
+#                             <th style="padding: 14px; text-align: left;">Platform</th>
+#                             <th style="padding: 14px; text-align: left;">Model</th>
+#                             <th style="padding: 14px; text-align: left;">Owner</th>
+#                             <th style="padding: 14px; text-align: left;">Due Date</th>
+#                         </tr>
+#                     </thead>
+#                     <tbody>
+#                         {rows_html}
+#                     </tbody>
+#                 </table>
+#             </div>
+#             """
+#             st.markdown(table_html, unsafe_allow_html=True)
+            
+#             # Export
+#             st.download_button("📥 Download Data", view_df.to_csv(index=False), "data.csv")
+            
+#             # Bulk Delete (Optional)
+#             with st.expander("Delete Options"):
+#                 entry = st.text_input("Verify Code to Delete")
+#                 if st.button("Delete") and entry:
+#                     if entry in df['Project Code'].values:
+#                         df = df[df['Project Code']!=entry]
+#                         save_data(df)
+#                         st.balloons()
+#                         st.rerun()
 
-
-
-
-
-
-
-
-
-
-
+# if __name__ == "__main__":
+#     main()
 
 
 
@@ -764,717 +364,516 @@ import pandas as pd
 from datetime import date
 import plotly.express as px
 import plotly.graph_objects as go
-from io import StringIO
 import streamlit.components.v1 as components
+import time
 
-# ================= CONFIG =================
+# ================= CONFIGURATION =================
 st.set_page_config(
     page_title="TWS Project – Exports",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+    page_icon="🚜"
 )
 
 DATA_FILE = "tws_exports.csv"
 
 COLUMNS = [
-    "Email","Project Code","Project Description","Start of Project","Platform",
-    "Continent/Country","SCR No","SCR Issue in CFT","Model","Aggregate",
-    "Aggregate Lead","Implementation Month","R&D PMO","Feasibility Uploaded",
-    "G1 Drg Release","Material Avl","Proto Fitment","Testing Start",
-    "Interim Testing Go Ahead","G1 ORC Drg","G1 ORC Material","G1 ORC Proto",
-    "G2 Go Ahead","G2 Material","5 Tractors Online","PRR Sign-off",
-    "Pre ERN","Go Ahead ERN","BOM Change","BCR Number","BCR Date","Cut-off Number"
+    "Email", "Project Code", "Project Description", "Start of Project", "Platform",
+    "Continent/Country", "SCR No", "SCR Issue in CFT", "Model", "Aggregate",
+    "Aggregate Lead", "Implementation Month", "R&D PMO", "Feasibility Uploaded",
+    "G1 Drg Release", "Material Avl", "Proto Fitment", "Testing Start",
+    "Interim Testing Go Ahead", "G1 ORC Drg", "G1 ORC Material", "G1 ORC Proto",
+    "G2 Go Ahead", "G2 Material", "5 Tractors Online", "PRR Sign-off",
+    "Pre ERN", "Go Ahead ERN", "BOM Change", "BCR Number", "BCR Date", "Cut-off Number"
 ]
 
-# ================= CLEAN WHITE STYLE WITH BLUE THEME =================
+# ================= PREMIUM 3D CSS & ANIMATIONS =================
 st.markdown("""
 <style>
-    /* White Background Theme */
+    /* Import Premium Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+    /* Global Theme */
     .stApp {
-        background-color: #ffffff !important;
+        background: radial-gradient(circle at 10% 20%, rgb(239, 246, 255) 0%, rgb(219, 234, 254) 90%);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* 3D Headers with Gradient Text */
+    h1, h2, h3 {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800 !important;
+        text-shadow: 2px 4px 8px rgba(30, 58, 138, 0.1);
+        animation: floatIn 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    }
+
+    /* Animations */
+    @keyframes floatIn {
+        0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
     }
     
-    /* Blue Headers */
-    h1, h2, h3, h4, h5, h6 {
-        color: #1a56db !important;
-        font-weight: 700 !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    @keyframes pulseGlow {
+        0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+
+    /* 3D Glassmorphism Cards (Metrics & Forms) */
+    div[data-testid="stMetric"], .stForm {
+        background: rgba(255, 255, 255, 0.65) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 20px !important;
+        box-shadow: 
+            0 10px 30px rgba(0, 0, 0, 0.08), 
+            0 4px 8px rgba(0, 0, 0, 0.04), 
+            inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     
-    /* Blue Labels and Text */
-    label, span, p, div {
-        color: #1e40af !important;
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-8px) rotateX(2deg);
+        box-shadow: 
+            0 20px 40px rgba(37, 99, 235, 0.15), 
+            0 8px 16px rgba(37, 99, 235, 0.1);
+        border-color: #3b82f6;
+    }
+
+    /* 3D Inputs */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    .stDateInput > div > div > input,
+    .stSelectbox > div > div > div {
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: inset 2px 2px 5px rgba(0,0,0,0.03), inset -2px -2px 5px rgba(255,255,255,0.8);
+        transition: all 0.3s ease;
+        padding: 10px;
     }
     
-    /* Dataframe Styling */
-    .stDataFrame {
-        border: 2px solid #1d4ed8 !important;
-        border-radius: 10px !important;
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2), 0 0 0 2px #3b82f6;
+        border-color: #3b82f6;
     }
-    
-    /* Blue Input Fields */
-    input, textarea, select {
-        background-color: #ffffff !important;
-        color: #1e40af !important;
-        border: 1px solid #3b82f6 !important;
-        border-radius: 8px !important;
-    }
-    
-    /* Blue Buttons */
+
+    /* 3D Buttons */
     .stButton > button {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        padding: 10px 24px !important;
-        transition: all 0.3s ease !important;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.8rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3), 0 1px 3px rgba(37, 99, 235, 0.2);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     
     .stButton > button:hover {
-        background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3) !important;
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 12px 20px rgba(37, 99, 235, 0.4), 0 4px 8px rgba(37, 99, 235, 0.3);
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
     }
     
-    /* Tab Styling */
+    .stButton > button:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Custom Tables */
+    .stDataFrame {
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        border: none;
+        overflow: hidden;
+    }
+    
+    /* Expander animation */
+    .streamlit-expanderHeader {
+        background-color: rgba(255,255,255,0.5);
+        border-radius: 12px;
+        transition: all 0.2s;
+        font-weight: 600;
+        color: #1e40af;
+    }
+    .streamlit-expanderHeader:hover {
+        background-color: #f1f5f9;
+        transform: translateX(5px);
+    }
+    
+    /* Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
+        gap: 10px;
+        background: rgba(255,255,255,0.5);
+        padding: 10px;
+        border-radius: 15px;
     }
     
     .stTabs [data-baseweb="tab"] {
-        background-color: #ffffff !important;
-        color: #1e40af !important;
-        border: 1px solid #dbeafe !important;
-        border-radius: 8px 8px 0 0 !important;
-        padding: 12px 24px !important;
+        border-radius: 10px;
+        background-color: transparent;
+        transition: all 0.3s;
     }
     
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background-color: #dbeafe !important;
-        color: #1d4ed8 !important;
-        border-bottom: 3px solid #2563eb !important;
+        background-color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        color: #2563eb;
+        transform: scale(1.05);
     }
-    
-    /* Metrics Styling */
-    [data-testid="stMetric"] {
-        background-color: #f0f9ff !important;
-        padding: 20px !important;
-        border-radius: 12px !important;
-        border: 1px solid #bae6fd !important;
-    }
-    
-    [data-testid="stMetricLabel"], [data-testid="stMetricValue"], [data-testid="stMetricDelta"] {
-        color: #1e40af !important;
-    }
-    
-    /* Radio Buttons */
-    .stRadio > div {
-        background-color: #f8fafc !important;
-        padding: 15px !important;
-        border-radius: 10px !important;
-        border: 1px solid #e2e8f0 !important;
-    }
-    
-    /* File Uploader */
-    .stFileUploader > div {
-        background-color: #f8fafc !important;
-        border: 2px dashed #93c5fd !important;
-        border-radius: 10px !important;
-        padding: 20px !important;
-    }
-    
-    /* Success/Error Messages */
-    .stAlert {
-        border-radius: 8px !important;
-        border: 1px solid !important;
-    }
-    
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background-color: #f8fafc !important;
-    }
-    
-    /* Table Styling */
-    .dataframe {
-        background-color: #ffffff !important;
-        color: #1e40af !important;
-    }
-    
-    /* Select Box */
-    div[data-baseweb="select"] > div {
-        background-color: #ffffff !important;
-        color: #1e40af !important;
-        border: 1px solid #3b82f6 !important;
-    }
-    
-    /* Checkbox */
-    .stCheckbox > label {
-        color: #1e40af !important;
-    }
-    
-    /* Divider */
-    hr {
-        border-color: #dbeafe !important;
-    }
-    
-    /* Card-like containers */
-    .st-expander {
-        background-color: #f8fafc !important;
-        border: 1px solid #dbeafe !important;
-        border-radius: 10px !important;
-    }
-    
-    /* Blue Scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: #1d4ed8;
-    }
-    
-    /* Status Badges */
-    .status-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    
-    .status-complete {
-        background-color: #dcfce7;
-        color: #166534;
-    }
-    
-    .status-pending {
-        background-color: #fef3c7;
-        color: #92400e;
-    }
-    
-    .status-progress {
-        background-color: #dbeafe;
-        color: #1e40af;
-    }
+
 </style>
 """, unsafe_allow_html=True)
 
-# ================= LOAD / SAVE =================
+# ================= HELPER FUNCTIONS =================
+
 def load_data():
     try:
         df = pd.read_csv(DATA_FILE)
+        # 1. Ensure Project Code is string
         if 'Project Code' in df.columns:
             df['Project Code'] = df['Project Code'].astype(str)
+        
+        # 2. Fix "None" / NaN display by replacing with empty string
+        df = df.fillna("")
         return df
-    except:
+    except FileNotFoundError:
+        return pd.DataFrame(columns=COLUMNS)
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
         return pd.DataFrame(columns=COLUMNS)
 
 def save_data(df):
-    if 'Project Code' in df.columns:
-        df['Project Code'] = df['Project Code'].astype(str)
-    df.to_csv(DATA_FILE, index=False)
+    try:
+        if 'Project Code' in df.columns:
+            df['Project Code'] = df['Project Code'].astype(str)
+        df.to_csv(DATA_FILE, index=False)
+        return True
+    except Exception as e:
+        st.error(f"Error saving data: {e}")
+        return False
 
-df = load_data()
-
-# ================= LOTTIE ANIMATION (helper) =================
-def display_lottie_animation(width=100, height=100):
-    lottie_html = f"""
-    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
-    <dotlottie-wc src="https://lottie.host/8dd2e6af-9e9a-4464-ad99-41e7c2a723e2/AzY19wIzNy.lottie" style="width: {width}px; height: {height}px" autoplay loop></dotlottie-wc>
-    """
-    components.html(lottie_html, height=height+20)
-
-# ================= PROFESSIONAL DASHBOARD =================
-def create_dashboard():
-    st.markdown("### 📊 Project Analytics Dashboard")
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        display_lottie_animation(100, 100)
-    
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        total_projects = len(df)
-        st.metric("Total Projects", total_projects,
-                  delta=f"+{len(df[df['Start of Project'] == pd.Timestamp(date.today()).strftime('%Y-%m-%d')])} today" if total_projects > 0 else None)
-    with col2:
-        g1_completed = df["G1 Drg Release"].notna().sum()
-        completion_rate = (g1_completed / total_projects * 100) if total_projects > 0 else 0
-        st.metric("G1 Completed", g1_completed, delta=f"{completion_rate:.1f}%")
-    with col3:
-        g2_completed = df["G2 Go Ahead"].notna().sum()
-        g2_rate = (g2_completed / total_projects * 100) if total_projects > 0 else 0
-        st.metric("G2 Completed", g2_completed, delta=f"{g2_rate:.1f}%")
-    with col4:
-        active_projects = len(df[df['Implementation Month'].str.strip().str.lower() == pd.Timestamp.now().strftime('%b').lower()]) if 'Implementation Month' in df.columns else 0
-        st.metric("Active This Month", active_projects)
-    
-    st.markdown("---")
-    
+# Sidebar Stats
+def sidebar_stats(df):
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📊 Live Stats")
     if not df.empty:
-        col1, col2 = st.columns(2)
-        with col1:
-            if 'Platform' in df.columns:
-                platform_counts = df['Platform'].value_counts()
-                fig = go.Figure(data=[go.Bar(x=platform_counts.index, y=platform_counts.values,
-                                              marker_color='#2563eb', text=platform_counts.values, textposition='auto')])
-                fig.update_layout(title='Projects by Platform', paper_bgcolor='white', plot_bgcolor='white',
-                                  font=dict(color='#1e40af'), height=400)
-                st.plotly_chart(fig, use_container_width=True)
-        with col2:
-            if 'Aggregate' in df.columns:
-                aggregate_counts = df['Aggregate'].value_counts()
-                fig = go.Figure(data=[go.Pie(labels=aggregate_counts.index, values=aggregate_counts.values, hole=.3,
-                                             marker=dict(colors=['#2563eb', '#1d4ed8', '#1e40af', '#3730a3', '#312e81']))])
-                fig.update_layout(title='Projects by Aggregate Type', paper_bgcolor='white', plot_bgcolor='white',
-                                  font=dict(color='#1e40af'), height=400)
-                st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("### 📋 Recent Projects")
-    if not df.empty:
-        if 'Start of Project' in df.columns:
-            try:
-                df_display = df.copy()
-                df_display['Start of Project'] = pd.to_datetime(df_display['Start of Project'], errors='coerce')
-                recent_df = df_display.sort_values('Start of Project', ascending=False).head(10)
-            except:
-                recent_df = df.head(10)
+        total = len(df)
+        this_month = pd.Timestamp.now().strftime('%b')
+        if 'Implementation Month' in df.columns:
+             active = len(df[df['Implementation Month'].astype(str).str.contains(this_month, case=False, na=False)])
         else:
-            recent_df = df.head(10)
-        display_cols = ['Email','Project Code', 'Project Description', 'Platform','Start of Project','Continent/Country','SCR No','SCR Issue in CFT','Model', 'Aggregate', 'Aggregate Lead', 'Implementation Month','R&D PMO']
-        display_cols = [col for col in display_cols if col in recent_df.columns]
-        st.dataframe(recent_df[display_cols], use_container_width=True)
-    else:
-        st.info("No projects available. Add your first project in the Data Entry tab.")
-
-# ================= MAIN =================
-col1, col2 = st.columns([1, 3])
-
-with col1:
-    display_lottie_animation(200, 200)
-
-with col2:
-    st.markdown('<h1 style="text-align: center; font-size: 48px; font-weight: 800; background: linear-gradient(135deg, #2563eb, #1d4ed8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px;">TWS Project – Exports Management</h1>', unsafe_allow_html=True)
-
-tab1, tab2, tab3 = st.tabs(["📝 Data Entry Form", "📊 Dashboard", "📁 Data Management"])
-
-# ================= FORM TAB =================
-with tab1:
-    st.markdown("### ✨ New Project Entry")
-    
-    with st.form("tws_form"):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            email = st.text_input("📧 Email *", placeholder="user@company.com")
-            project_code = st.text_input("🔢 Project Code *", placeholder="PRJ-XXXX-YY")
-            project_desc = st.text_area("📝 Project Description *", height=100)
-            start_project = st.date_input("📅 Start of Project", date.today())
-            platform = st.selectbox(
-                "🖥️ Platform",
-                ["Below 30 HP", "30–60 HP", "60–101 HP", "Above 101 HP"],
-                key="platform_select"
-            )
-            continent = st.text_input("🌍 Continent / Country", placeholder="North America / USA")
-            scr_no = st.text_input("📄 SCR Number", placeholder="SCR-XXXX")
+            active = 0
             
-        with col2:
-            scr_issue = st.text_input("🔧 SCR Issue in CFT", placeholder="Issue discussed in cross-functional team")
-            model = st.text_input("🚜 Model", placeholder="Model name/number")
-            aggregate = st.selectbox(
-                "🔩 Aggregate",
-                ["Electrical", "Hydraulic", "Transmission", "Engine", "Vehicle", "Cabin"]
-            )
-            agg_lead = st.text_input("👨‍💼 Aggregate Lead", placeholder="Lead person name")
-            imp_month = st.date_input("📅 Implementation Month", date.today())
-            
-            # R&D PMO with dynamic default based on platform
-            r_and_d_options = ["Mohit Rana", "Arashdeep Parmar"]
-            current_platform = st.session_state.get("platform_select", "Below 30 HP")
-            if "30–60 HP" in current_platform:
-                default_rnd = "Mohit Rana"
-            elif "60–101 HP" in current_platform:
-                default_rnd = "Arashdeep Parmar"
-            else:
-                default_rnd = "Mohit Rana"
-            rnd_index = r_and_d_options.index(default_rnd) if default_rnd in r_and_d_options else 0
-            r_and_d = st.selectbox("🔬 R&D PMO", r_and_d_options, index=rnd_index)
+        col1, col2 = st.sidebar.columns(2)
+        col1.metric("Total", total)
+        col2.metric("Active", active)
         
-        st.markdown("---")
-        st.markdown("#### 📎 Documents & Timeline")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            feasibility = st.file_uploader("📎 Feasibility Study", type=['pdf', 'docx', 'doc'])
-            g1_drg = st.date_input("📐 G1 Drg Release")
-            material_avl = st.date_input("📦 Material Avl")
-            proto_fitment = st.date_input("🔧 Proto Fitment")
-            testing_start = st.date_input("🧪 Testing Start")
-            interim_go = st.date_input("✅ Interim Testing Go Ahead")
-            g1_orc_drg = st.date_input("🔄 G1 ORC Drg Release")
-        with col2:
-            g1_orc_mat = st.date_input("📦 G1 ORC Material Avl")
-            g1_orc_proto = st.date_input("🔧 G1 ORC Proto fitment")
-            g2_go = st.date_input("🚀 G2 Go Ahead")
-            g2_mat_avl = st.date_input("📦 G2 Material Avl")
-            tractors_online = st.date_input("🚜 5 Tractors Making on line")
-            prr_signoff = st.date_input("✅ PRR Sign-Off 5 nos")
-            pre_ern = st.date_input("📝 Pre ERN")
-            go_ahead_ern = st.date_input("✅ Go Ahead ERN")
-        
-        st.markdown("---")
-        st.markdown("#### 🏭 Production & Approvals")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            bcr_no = st.text_input("🔢 BCR Number", placeholder="Reference")
-            bcr_date = st.date_input("📅 BCR Date")
-            cutoff = st.text_input("✂️ Cut-off Number", placeholder="Reference")
-        
-        submit = st.form_submit_button("🚀 Submit Project", use_container_width=True)
+        # Completion Bar
+        if 'G1 Drg Release' in df.columns:
+            completed = df['G1 Drg Release'].replace("", pd.NA).notna().sum()
+            progress = completed / total if total > 0 else 0
+            st.sidebar.markdown(f"**G1 Completion Rate**")
+            st.sidebar.progress(progress)
+            st.sidebar.caption(f"{int(progress*100)}% ({completed}/{total})")
+
+# ================= MAIN APP =================
+
+def main():
+    # Header Section with Animation
+    col_logo, col_title = st.columns([1, 4])
+    with col_logo:
+        # 3D Rotating Logo Effect using Lottie
+        lottie_html_mini = """
+        <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
+        <div style="filter: drop-shadow(0 10px 15px rgba(37, 99, 235, 0.3));">
+            <dotlottie-wc src="https://lottie.host/8dd2e6af-9e9a-4464-ad99-41e7c2a723e2/AzY19wIzNy.lottie" autoplay loop style="width: 120px; height: 120px;"></dotlottie-wc>
+        </div>
+        """
+        components.html(lottie_html_mini, height=140)
     
-    if submit:
-        if not email or not project_code or not project_desc:
-            st.error("❌ Please fill all required fields (*)")
-        else:
-            project_code_str = str(project_code)
-            if not df.empty and 'Project Code' in df.columns:
-                df['Project Code'] = df['Project Code'].astype(str)
-                if project_code_str in df['Project Code'].values:
-                    st.warning("⚠️ Project Code already exists! Updating existing record...")
-                    idx = df[df['Project Code'] == project_code_str].index[0]
-                    update_record = True
+    with col_title:
+        st.markdown("""
+        <div style="padding-top: 30px;">
+            <h1 style="margin-bottom: 0; font-size: 3rem;">TWS Project Exports</h1>
+            <p style="color: #64748b; font-size: 1.2rem; font-weight: 500;">
+                Premium Project Tracking Dashboard
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    df = load_data()
+    
+    # Navigation Tabs
+    tab_form, tab_dash, tab_data = st.tabs(["📝 Project Entry", "📈 Dashboard Analytics", "🗃️ Data Management"])
+
+    # --- TAB 1: DATA ENTRY ---
+    with tab_form:
+        st.markdown("### ✨ New Project Registration")
+        
+        with st.form("project_form", clear_on_submit=False):
+            
+            # --- Section 1: Basic Information ---
+            with st.expander("📌 Project Information", expanded=True):
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    email = st.text_input("📧 Email Address *", placeholder="user@sonalika.com")
+                    project_code = st.text_input("🔢 Project Code *", placeholder="e.g., PRJ-2024-001")
+                with c2:
+                    project_desc = st.text_area("📝 Project Description", height=100)
+                with c3:
+                    start_date = st.date_input("📅 Start of Project", value=None)
+                    platform = st.selectbox("🖥️ Platform", ["Below 30 HP", "30–60 HP", "60–101 HP", "Above 101 HP"])
+                    continent = st.text_input("🌍 Continent / Country", placeholder="e.g., North America")
+
+            # --- Section 2: Technical Specifications ---
+            with st.expander("🔧 Technical Specifications", expanded=False):
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    model = st.text_input("🚜 Model")
+                    aggregate = st.selectbox("🔩 Aggregate Type", ["Engine", "Transmission", "Hydraulics", "Electrical", "Chassis", "Cabin"])
+                with c2:
+                    scr_no = st.text_input("📄 SCR Number")
+                    scr_issue = st.text_input("🔧 SCR Issue in CFT")
+                with c3:
+                    agg_lead = st.text_input("👨‍💼 Aggregate Lead")
+                    # R&D Logic
+                    default_rnd = "Mohit Rana"
+                    if "60–101 HP" in platform:
+                        default_rnd = "Arashdeep Parmar"
+                    rnd_pmo = st.selectbox("🔬 R&D PMO", ["Mohit Rana", "Arashdeep Parmar"], index=0 if default_rnd == "Mohit Rana" else 1)
+
+            # --- Section 3: G1 Milestones ---
+            with st.expander("🏗️ G1 Milestones", expanded=False):
+                col_a, col_b, col_c = st.columns(3)
+                with col_a:
+                    feasibility = st.file_uploader("📎 Feasibility Study", type=["pdf", "docx"])
+                    g1_drg = st.date_input("📐 G1 Drg Release", value=None)
+                with col_b:
+                    mat_avl = st.date_input("📦 Material Availability", value=None)
+                    proto_fit = st.date_input("🔧 Proto Fitment", value=None)
+                with col_c:
+                    test_start = st.date_input("🧪 Testing Start", value=None)
+                    interim_go = st.date_input("✅ Interim Testing Go Ahead", value=None)
+            
+            # --- Section 4: ORC Milestones ---
+            with st.expander("🔄 ORC Milestones", expanded=False):
+                col_a, col_b, col_c = st.columns(3)
+                with col_a:
+                    g1_orc_drg = st.date_input("📐 G1 ORC Drg Release", value=None)
+                with col_b:
+                    g1_orc_mat = st.date_input("📦 G1 ORC Material Avl", value=None)
+                with col_c:
+                    g1_orc_proto = st.date_input("🔧 G1 ORC Proto Fitment", value=None)
+
+            # --- Section 5: G2 & Production ---
+            with st.expander("🏭 G2 & Production", expanded=False):
+                col_a, col_b, col_c = st.columns(3)
+                with col_a:
+                    g2_go = st.date_input("🚀 G2 Go Ahead", value=None)
+                    g2_mat_avl = st.date_input("📦 G2 Material Avl", value=None)
+                with col_b:
+                    tractors_online = st.date_input("🚜 5 Tractors Online", value=None)
+                    prr_sign = st.date_input("✅ PRR Sign-off", value=None)
+                with col_c:
+                    imp_month = st.date_input("📅 Implementation Month", date.today())
+            
+            # --- Section 6: ERN & Approvals ---
+            with st.expander("📋 ERN & Approvals", expanded=False):
+                col_a, col_b, col_c = st.columns(3)
+                with col_a:
+                    pre_ern = st.date_input("📝 Pre ERN", value=None)
+                    go_ahead_ern = st.date_input("✅ Go Ahead ERN", value=None)
+                with col_b:
+                    bom_change = st.text_input("📑 BOM Change Details")
+                    bcr_no = st.text_input("🔢 BCR Number")
+                with col_c:
+                    bcr_date = st.date_input("📅 BCR Date", value=None)
+                    cutoff_no = st.text_input("✂️ Cut-off Number")
+            
+            # Form Actions
+            st.markdown("---")
+            submitted = st.form_submit_button("🚀 Submit Project")
+            
+            if submitted:
+                if not email or not project_code:
+                    st.toast("❌ Email and Project Code are required!", icon="⚠️")
                 else:
-                    idx = len(df)
-                    update_record = False
-            else:
-                update_record = False
-            
-            def format_date(date_val):
-                if pd.isna(date_val) or date_val is None:
-                    return ""
-                return date_val.strftime('%Y-%m-%d') if hasattr(date_val, 'strftime') else str(date_val)
-            
-            new_data = {
-                "Email": str(email),
-                "Project Code": project_code_str,
-                "Project Description": str(project_desc),
-                "Start of Project": format_date(start_project),
-                "Platform": str(platform),
-                "Continent/Country": str(continent),
-                "SCR No": str(scr_no),
-                "SCR Issue in CFT": str(scr_issue),
-                "Model": str(model),
-                "Aggregate": str(aggregate),
-                "Aggregate Lead": str(agg_lead),
-                "Implementation Month": format_date(imp_month),
-                "R&D PMO": str(r_and_d),
-                "Feasibility Uploaded": feasibility.name if feasibility else "",
-                "G1 Drg Release": format_date(g1_drg),
-                "Material Avl": format_date(material_avl),
-                "Proto Fitment": format_date(proto_fitment),
-                "Testing Start": format_date(testing_start),
-                "Interim Testing Go Ahead": format_date(interim_go),
-                "G1 ORC Drg": format_date(g1_orc_drg),
-                "G1 ORC Material": format_date(g1_orc_mat),
-                "G1 ORC Proto": format_date(g1_orc_proto),
-                "G2 Go Ahead": format_date(g2_go),
-                "G2 Material": format_date(g2_mat_avl),
-                "5 Tractors Online": format_date(tractors_online),
-                "PRR Sign-off": format_date(prr_signoff),
-                "Pre ERN": format_date(pre_ern),
-                "Go Ahead ERN": format_date(go_ahead_ern),
-                "BOM Change": "",  # Not in form
-                "BCR Number": str(bcr_no),
-                "BCR Date": format_date(bcr_date),
-                "Cut-off Number": str(cutoff)
-            }
-            
-            if update_record:
-                for key, value in new_data.items():
-                    if key in df.columns:
-                        df.at[idx, key] = value
-                st.success(f"✅ Project {project_code} updated successfully!")
-            else:
-                # Ensure all columns exist
-                for col in COLUMNS:
-                    if col not in new_data:
-                        new_data[col] = ""
-                df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
-                st.success(f"✅ New project {project_code} added successfully!")
-            
-            save_data(df)
-            st.rerun()
+                    # Helper
+                    def fmt(d): return d.strftime("%Y-%m-%d") if d else ""
+                    
+                    # File Handling
+                    feasibility_status = ""
+                    if feasibility is not None:
+                        feasibility_status = "✅ Uploaded: " + feasibility.name
 
-# ================= DASHBOARD TAB =================
-with tab2:
-    create_dashboard()
-
-# ================= DATA MANAGEMENT TAB =================
-with tab3:
-    st.markdown("### 📁 Data Management Center")
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        display_lottie_animation(100, 100)
-    
-    mgmt_tab1, mgmt_tab2, mgmt_tab3 = st.tabs(["📊 View & Edit All Data", "📤 Import from Google Sheets", "⚙️ Bulk Operations"])
-    
-    with mgmt_tab1:
-        st.markdown("#### 📋 Complete Project Database")
-        if not df.empty:
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                search_term = st.text_input("🔍 Search across all columns:", placeholder="Type to search...", key="search_all")
-            show_cols = st.multiselect(
-                "Filter Columns:",
-                options=df.columns.tolist(),
-                default=df.columns.tolist()[:min(8, len(df.columns))] if len(df.columns) > 8 else df.columns.tolist(),
-                key="filter_cols"
-            )
-            if search_term:
-                mask = df.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)
-                display_df = df[mask]
-            else:
-                display_df = df
-            if not show_cols:
-                show_cols = df.columns.tolist()
-            st.markdown(f"**Showing {len(display_df)} of {len(df)} records**")
-            st.dataframe(display_df[show_cols], use_container_width=True)
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                if st.button("🔄 Refresh Data", use_container_width=True, key="refresh_all"):
-                    df = load_data()
-                    st.rerun()
-            with col2:
-                if st.button("📥 Export to CSV", use_container_width=True, key="export_csv"):
-                    csv = df.to_csv(index=False)
-                    st.download_button(label="⬇️ Download CSV", data=csv,
-                                       file_name=f"tws_exports_{date.today()}.csv", mime="text/csv", use_container_width=True)
-            with col3:
-                if not df.empty:
-                    project_to_delete = st.selectbox("Select project to delete:", options=df['Project Code'].astype(str).tolist(), key="delete_select")
-                    if st.button("🗑️ Delete Selected", use_container_width=True, key="delete_btn"):
-                        df = df[df['Project Code'].astype(str) != project_to_delete]
-                        save_data(df)
-                        st.success(f"✅ Project {project_to_delete} deleted successfully!")
-                        st.rerun()
-        else:
-            st.info("📭 No data available. Add your first project or import data.")
-    
-    with mgmt_tab2:
-        st.markdown("#### 📤 Import from Google Sheets/CSV")
-        st.info("Upload a CSV file exported from Google Sheets to update your database.")
-        uploaded_file = st.file_uploader("Choose a CSV file", type=['csv'], help="Upload CSV file with matching column names", key="csv_uploader")
-        if uploaded_file is not None:
-            try:
-                new_data = pd.read_csv(uploaded_file)
-                st.markdown("##### 📄 File Preview (First 5 rows):")
-                st.dataframe(new_data.head(), use_container_width=True)
-                st.markdown(f"**File contains {len(new_data)} rows and {len(new_data.columns)} columns**")
-                if 'Project Code' not in new_data.columns:
-                    st.error("❌ CSV must contain 'Project Code' column!")
-                else:
-                    st.markdown("##### 🔄 Column Mapping")
-                    mapping_df = pd.DataFrame({
-                        'CSV Columns': new_data.columns,
-                        'Database Columns': [col if col in COLUMNS else '❌ No match' for col in new_data.columns]
-                    })
-                    st.dataframe(mapping_df, use_container_width=True)
-                    st.markdown("##### ⚙️ Import Options")
-                    import_mode = st.radio("Select import mode:", ["Update Existing & Add New", "Replace Entire Database", "Add New Only"], key="import_mode")
-                    conflict_resolution = st.radio("If project exists:", ["Update with new data", "Keep existing data", "Skip record"], key="conflict_res")
-                    if st.button("🚀 Process Import", use_container_width=True, key="process_import"):
-                        with st.spinner("Processing import..."):
-                            if import_mode == "Replace Entire Database":
-                                df = new_data
-                                save_data(df)
-                                st.success("✅ Database replaced successfully!")
-                            else:
-                                updated_count = 0
-                                added_count = 0
-                                skipped_count = 0
-                                new_data['Project Code'] = new_data['Project Code'].astype(str)
-                                if not df.empty:
-                                    df['Project Code'] = df['Project Code'].astype(str)
-                                for idx, row in new_data.iterrows():
-                                    project_code = str(row.get('Project Code', ''))
-                                    if not df.empty and project_code in df['Project Code'].values:
-                                        if import_mode == "Update Existing & Add New":
-                                            if conflict_resolution == "Update with new data":
-                                                db_idx = df[df['Project Code'] == project_code].index[0]
-                                                for col in new_data.columns:
-                                                    if col in df.columns and pd.notna(row[col]):
-                                                        df.at[db_idx, col] = row[col]
-                                                updated_count += 1
-                                            elif conflict_resolution == "Skip record":
-                                                skipped_count += 1
-                                            else:
-                                                skipped_count += 1
-                                    else:
-                                        if import_mode in ["Update Existing & Add New", "Add New Only"]:
-                                            new_row = {}
-                                            for col in COLUMNS:
-                                                if col in new_data.columns:
-                                                    new_row[col] = row[col] if pd.notna(row.get(col)) else ""
-                                                else:
-                                                    new_row[col] = ""
-                                            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-                                            added_count += 1
-                                save_data(df)
-                                st.success(f"""
-                                ✅ **Import Completed!**
-                                **Summary:**
-                                - 📝 Records updated: **{updated_count}**
-                                - ➕ New records added: **{added_count}**
-                                - ⏭️ Records skipped: **{skipped_count}**
-                                - 📊 Total records now: **{len(df)}**
-                                """)
-                        st.rerun()
-            except Exception as e:
-                st.error(f"❌ Error reading file: {str(e)}")
-    
-    with mgmt_tab3:
-        st.markdown("#### ⚙️ Bulk Operations")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("##### 🗑️ Delete Operations")
-            if not df.empty:
-                st.markdown("**Delete by Project Code:**")
-                projects_to_delete = st.multiselect("Select projects to delete:", options=df['Project Code'].astype(str).tolist(), help="Select projects to delete", key="bulk_delete")
-                if projects_to_delete and st.button("🗑️ Delete Selected Projects", use_container_width=True, key="bulk_delete_btn"):
-                    df = df[~df['Project Code'].astype(str).isin(projects_to_delete)]
-                    save_data(df)
-                    st.success(f"✅ Deleted {len(projects_to_delete)} projects!")
-                    st.rerun()
-                st.markdown("**Clean Duplicates:**")
-                if st.button("🔍 Find & Remove Duplicates", use_container_width=True, key="remove_dups"):
-                    if not df.empty and 'Project Code' in df.columns:
-                        duplicates = df.duplicated(subset=['Project Code'], keep='first')
-                        if duplicates.any():
-                            st.warning(f"Found {duplicates.sum()} duplicate project codes!")
-                            df = df.drop_duplicates(subset=['Project Code'], keep='first')
-                            save_data(df)
-                            st.success("✅ Duplicates removed!")
-                        else:
-                            st.info("✅ No duplicates found!")
-        with col2:
-            st.markdown("##### 🔄 Batch Update")
-            if not df.empty:
-                st.markdown("**Update Field for Multiple Projects:**")
-                update_field = st.selectbox("Select field to update:", options=[col for col in df.columns if col not in ['Project Code', 'Email']], key="batch_field")
-                update_value = st.text_input(f"New value for {update_field}:", placeholder="Enter new value...", key="batch_value")
-                projects_to_update = st.multiselect("Select projects to update:", options=df['Project Code'].astype(str).tolist(), key="batch_projects")
-                if update_value and projects_to_update and st.button("🔄 Apply Batch Update", use_container_width=True, key="batch_update_btn"):
-                    df.loc[df['Project Code'].astype(str).isin(projects_to_update), update_field] = update_value
-                    save_data(df)
-                    st.success(f"✅ Updated {len(projects_to_update)} projects!")
-                    st.rerun()
-        
-        st.markdown("---")
-        st.markdown("##### 🚨 Database Management")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            if st.button("📊 Backup Database", use_container_width=True, key="backup_btn"):
-                backup_file = f"tws_backup_{date.today()}.csv"
-                df.to_csv(backup_file, index=False)
-                st.success(f"✅ Backup saved as {backup_file}")
-        with col2:
-            if st.button("🧹 Clear All Data", use_container_width=True, key="clear_all"):
-                confirm = st.checkbox("⚠️ I understand this will delete ALL data permanently", key="confirm_clear")
-                if confirm:
-                    df = pd.DataFrame(columns=COLUMNS)
-                    save_data(df)
-                    st.error("🗑️ All data cleared!")
-                    st.rerun()
-        with col3:
-            if st.button("🔍 Validate Data", use_container_width=True, key="validate_btn"):
-                if not df.empty:
-                    missing_email = df['Email'].isna().sum() if 'Email' in df.columns else 0
-                    missing_code = df['Project Code'].isna().sum() if 'Project Code' in df.columns else 0
-                    if missing_email + missing_code == 0:
-                        st.success("✅ All data is valid!")
+                    entry_data = {
+                        "Email": email,
+                        "Project Code": str(project_code),
+                        "Project Description": project_desc,
+                        "Start of Project": fmt(start_date),
+                        "Platform": platform,
+                        "Continent/Country": continent,
+                        "SCR No": scr_no,
+                        "SCR Issue in CFT": scr_issue,
+                        "Model": model,
+                        "Aggregate": aggregate,
+                        "Aggregate Lead": agg_lead,
+                        "Implementation Month": fmt(imp_month),
+                        "R&D PMO": rnd_pmo,
+                        "Feasibility Uploaded": feasibility_status, # SAVING STATUS, NOT RAW FILE
+                        "G1 Drg Release": fmt(g1_drg),
+                        "Material Avl": fmt(mat_avl),
+                        "Proto Fitment": fmt(proto_fit),
+                        "Testing Start": fmt(test_start),
+                        "Interim Testing Go Ahead": fmt(interim_go),
+                        "G1 ORC Drg": fmt(g1_orc_drg),
+                        "G1 ORC Material": fmt(g1_orc_mat),
+                        "G1 ORC Proto": fmt(g1_orc_proto),
+                        "G2 Go Ahead": fmt(g2_go),
+                        "G2 Material": fmt(g2_mat_avl),
+                        "5 Tractors Online": fmt(tractors_online),
+                        "PRR Sign-off": fmt(prr_sign),
+                        "Pre ERN": fmt(pre_ern),
+                        "Go Ahead ERN": fmt(go_ahead_ern),
+                        "BOM Change": bom_change,
+                        "BCR Number": bcr_no,
+                        "BCR Date": fmt(bcr_date),
+                        "Cut-off Number": cutoff_no
+                    }
+                    
+                    p_code = entry_data["Project Code"]
+                    
+                    # Logic to Update or Append
+                    if not df.empty and p_code in df['Project Code'].values:
+                        idx = df[df['Project Code'] == p_code].index[0]
+                        for col, val in entry_data.items():
+                            if col in df.columns:
+                                df.at[idx, col] = val
+                        st.balloons()
+                        st.toast(f"✅ Updated Project: {p_code}", icon="🔄")
                     else:
-                        st.warning(f"""
-                        ⚠️ **Data Issues Found:**
-                        - Missing Email: {missing_email}
-                        - Missing Project Code: {missing_code}
-                        """)
+                        new_row = pd.DataFrame([entry_data])
+                        df = pd.concat([df, new_row], ignore_index=True)
+                        st.balloons()
+                        st.toast(f"✅ Created Project: {p_code}", icon="🎉")
+                    
+                    save_data(df)
+                    time.sleep(1.5)
+                    st.rerun()
 
-# ================= SIDEBAR =================
-with st.sidebar:
-    display_lottie_animation(80, 80)
-    
-    st.markdown("### TWS Exports")
-    st.markdown("**Project Management**")
-    st.markdown("---")
-    st.markdown("### 📈 Quick Stats")
-    if not df.empty:
-        total_projects = len(df)
-        active_this_month = len(df[df['Implementation Month'].str.strip().str.lower() == pd.Timestamp.now().strftime('%b').lower()]) if 'Implementation Month' in df.columns else 0
-        g1_complete = df['G1 Drg Release'].notna().sum() if 'G1 Drg Release' in df.columns else 0
-        st.metric("Total Projects", total_projects)
-        st.metric("Active This Month", active_this_month)
-        st.metric("G1 Complete", g1_complete)
-    else:
-        st.info("No data yet")
-    st.markdown("---")
-    st.markdown("### ⚡ Quick Actions")
-    if st.button("➕ Add New Project", use_container_width=True, key="sidebar_new"):
-        st.session_state.current_tab = "📝 Data Entry Form"
-        st.rerun()
-    if not df.empty:
-        csv = df.to_csv(index=False)
-        st.download_button(label="📥 Export Data", data=csv, file_name="tws_exports.csv", mime="text/csv", use_container_width=True, key="sidebar_export")
-    
-    # ---------- CLEAR ALL DATA BUTTON (with confirmation) ----------
-    st.markdown("---")
-    st.markdown("### 🧹 Danger Zone")
-    clear_confirm = st.checkbox("I understand this will delete ALL data", key="sidebar_clear_confirm")
-    if st.button("🗑️ Clear All Data", use_container_width=True, key="sidebar_clear_btn"):
-        if clear_confirm:
-            df = pd.DataFrame(columns=COLUMNS)
-            save_data(df)
-            st.error("✅ All data has been cleared!")
-            st.rerun()
+    # --- TAB 2: DASHBOARD ---
+    with tab_dash:
+        st.markdown("### 📊 Analytics Overview")
+        if df.empty:
+            st.info("No data available to generate insights.")
         else:
-            st.warning("Please confirm by checking the box above.")
-    
-    st.markdown("---")
-    st.markdown("### 📅 Recent Activity")
-    if not df.empty:
-        try:
+            # Top Metrics Row
+            m1, m2, m3, m4 = st.columns(4)
+            total_p = len(df)
+            g2_done = df['G2 Go Ahead'].replace("", pd.NA).notna().sum() if 'G2 Go Ahead' in df.columns else 0
+            
+            m1.metric("Total Projects", total_p,delta="Active Database")
+            m2.metric("G2 Completed", g2_done, delta=f"{int(g2_done/total_p*100)}%" if total_p else "0%")
+            
+            # Charts with 3D colors
+            c1, c2 = st.columns(2)
+            with c1:
+                if 'Platform' in df.columns:
+                    plat_counts = df['Platform'].value_counts().reset_index()
+                    plat_counts.columns = ['Platform', 'Count']
+                    fig_plat = px.bar(plat_counts, x='Platform', y='Count', 
+                                      color='Count', 
+                                      color_continuous_scale='Deep',
+                                      title="Projects by Platform")
+                    fig_plat.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(family='Poppins'))
+                    st.plotly_chart(fig_plat, use_container_width=True)
+            
+            with c2:
+                if 'Aggregate' in df.columns:
+                    agg_counts = df['Aggregate'].value_counts()
+                    fig_agg = go.Figure(data=[go.Pie(labels=agg_counts.index, values=agg_counts.values, hole=.4)])
+                    fig_agg.update_traces(hoverinfo='label+percent', textinfo='value', textfont_size=20,
+                                          marker=dict(colors=px.colors.qualitative.Prism))
+                    fig_agg.update_layout(title="Aggregate Distribution", 
+                                          plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(family='Poppins'))
+                    st.plotly_chart(fig_agg, use_container_width=True)
+            
+            # Interactive Timeline
+            st.markdown("#### ⏳ Recent Project Timeline")
             if 'Start of Project' in df.columns:
-                df_recent = df.copy()
-                df_recent['Start of Project'] = pd.to_datetime(df_recent['Start of Project'], errors='coerce')
-                recent = df_recent.sort_values('Start of Project', ascending=False).head(3)
-            else:
-                recent = df.head(3)
-            for _, row in recent.iterrows():
-                project_code = str(row.get('Project Code', 'N/A'))
-                platform = str(row.get('Platform', 'N/A'))
-                aggregate = str(row.get('Aggregate', 'N/A'))
-                st.markdown(f"**{project_code}**")
-                st.markdown(f"*{platform} - {aggregate}*")
-                st.markdown("---")
-        except:
-            st.info("Could not load recent activity")
-    st.markdown("---")
-    st.markdown("#### 📊 Database Info")
-    if not df.empty:
-        st.markdown(f"""
-        - **Size:** {len(df)} records
-        - **Last Updated:** {date.today()}
-        - **Columns:** {len(df.columns)}
-        """)
+                try:
+                    df_time = df.copy()
+                    df_time['Start of Project'] = pd.to_datetime(df_time['Start of Project'], errors='coerce')
+                    timeline_df = df_time.dropna(subset=['Start of Project']).sort_values('Start of Project', ascending=False).head(10)
+                    if not timeline_df.empty:
+                        fig_time = px.scatter(timeline_df, x='Start of Project', y='Project Code', color='Platform',
+                                              title="Project Kickoff Timeline (Last 10)",
+                                              size_max=20, hover_data=['Model', 'Aggregate'])
+                        fig_time.update_layout(plot_bgcolor='#f1f5f9', paper_bgcolor='white', xaxis_title="Date")
+                        st.plotly_chart(fig_time, use_container_width=True)
+                except Exception as e:
+                    pass
+
+    # --- TAB 3: DATA MANAGEMENT ---
+    with tab_data:
+        st.markdown("### 🗃️ Database Records")
+        
+        # Action Bar
+        col_search, col_export = st.columns([3, 1])
+        with col_search:
+            search_query = st.text_input("🔍 Search Database", placeholder="Type any keyword...")
+        with col_export:
+            st.write("") 
+            st.write("") 
+            if not df.empty:
+                csv = df.to_csv(index=False)
+                st.download_button("📥 Export CSV", csv, "tws_export_db.csv", "text/csv", use_container_width=True)
+
+        # Filtered View
+        if not df.empty:
+            display_df = df.copy()
+            if search_query:
+                mask = display_df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
+                display_df = display_df[mask]
+            
+            # Explicitly showing all formatting clean columns
+            st.dataframe(
+                display_df,
+                use_container_width=True,
+                height=500
+            )
+            
+            st.caption(f"Showing {len(display_df)} records.")
+            
+            # Bulk Actions
+            with st.expander("⚠️ Danger Zone: Bulk Delete"):
+                del_code = st.selectbox("Select Project to Delete", [""] + list(df['Project Code'].unique()))
+                if st.button("🗑️ Delete Selected Project"):
+                    if del_code:
+                        df = df[df['Project Code'] != del_code]
+                        save_data(df)
+                        st.success(f"Deleted {del_code}")
+                        time.sleep(1)
+                        st.rerun()
+
+    # Sidebar Content
+    with st.sidebar:
+        st.markdown("### ⚙️ Tools")
+        if st.checkbox("Show Raw Configuration"):
+            st.json({"Theme": "Premium 3D Blue", "Version": "3.0.0", "Author": "TWS Team"})
+        
+        sidebar_stats(df)
+        
+        st.markdown("---")
+        st.info("Need Help? Contact IT Dept.")
+
+if __name__ == "__main__":
+    main()
