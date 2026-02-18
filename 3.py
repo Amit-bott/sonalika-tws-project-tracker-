@@ -281,6 +281,12 @@ def create_dashboard():
                                   font=dict(color='#1e40af'), height=400)
                 st.plotly_chart(fig, use_container_width=True)
     
+
+
+
+
+
+
     st.markdown("### 📋 Recent Projects")
     if not df.empty:
         if 'Start of Project' in df.columns:
@@ -292,7 +298,7 @@ def create_dashboard():
                 recent_df = df.head(10)
         else:
             recent_df = df.head(10)
-        display_cols = ['Project Code', 'Project Description', 'Platform', 'Aggregate', 'Aggregate Lead', 'Implementation Month']
+        display_cols = [ 'Email','Project Code', 'Project Description', 'Platform','Start of project','Continent/Country','SCR No','SCR-Issue Discussed in CFT','Model', 'Aggregate', 'Aggregate Lead', 'Implementation Month','R&D-PMO']
         display_cols = [col for col in display_cols if col in recent_df.columns]
         st.dataframe(recent_df[display_cols], width='stretch')
     else:
@@ -383,13 +389,19 @@ with tab1:
             proto = st.date_input("🔧 Proto Fitment")
             testing = st.date_input("🧪 Testing Start")
             interim = st.date_input("✅ Interim Testing Go Ahead")
+            g1_orc_drg = st.date_input("🔄 G1 ORC Drg.Release")
+            # g1_orc_mat = st.date_input("📦 G1 ORC Material Avl")
         with col2:
-            g1_orc_drg = st.date_input("🔄 G1 ORC Drg")
-            g1_orc_mat = st.date_input("📦 G1 ORC Material")
-            g1_orc_proto = st.date_input("🔧 G1 ORC Proto")
+            # g1_orc_drg = st.date_input("🔄 G1 ORC Drg.Release")
+            g1_orc_mat = st.date_input("📦 G1 ORC Material Avl")
+            g1_orc_proto = st.date_input("🔧 G1 ORC Proto fitment")
             g2_go = st.date_input("🚀 G2 Go Ahead")
-            g2_mat = st.date_input("📦 G2 Material")
-        
+            g2_mat = st.date_input("📦 G2 Material Avl")
+            g2_mat = st.date_input("5 tractors Making on line")
+            g2_mat = st.date_input (" PRR Sing-Off 5 nos")
+            g2_mat = st.date_input (" Pre ERN")
+            g2_mat = st.date_input ("Go Ahead ERN")
+            # g2_mat = st.date_input ("")
         st.markdown("---")
         st.markdown("#### 🏭 Production & Approvals")
         col1, col2, col3 = st.columns(3)
@@ -442,14 +454,23 @@ with tab1:
                 "Proto Fitment": format_date(proto),
                 "Testing Start": format_date(testing),
                 "Interim Testing Go Ahead": format_date(interim),
-                "G1 ORC Drg": format_date(g1_orc_drg),
-                "G1 ORC Material": format_date(g1_orc_mat),
-                "G1 ORC Proto": format_date(g1_orc_proto),
+                "G1 ORC Drg Release ": format_date(g1_orc_drg),
+                "G1 ORC Material Avl": format_date(g1_orc_mat),
+                "G1 ORC Proto Fitment": format_date(g1_orc_proto),
                 "G2 Go Ahead": format_date(g2_go),
-                "G2 Material": format_date(g2_mat),
+                "G2 Material Avl": format_date(g2_mat),
+                #  "G1 ORC Drg.Release": format_date(g1_orc_drg ),
+                "5 tractors Making on line": format_date( g2_mat),
+                "PRR Sing-Off 5 nos": format_date( g2_mat),
+                "Pre ERN": format_date( g2_mat),
+                "Go Ahead ERN": format_date ( g2_mat) ,
                 "BCR Number": str(bcr_no),
                 "BCR Date": format_date(bcr_date),
                 "Cut-off Number": str(cutoff)
+                #    g2_mat = st.date_input("5 tractors Making on line")
+            # g2_mat = st.date_input (" PRR Sing-Off 5 nos")
+            # g2_mat = st.date_input (" Pre ERN")
+            # g2_mat = st.date_input ("Go Ahead ERN")
             }
             
             if update_record:
