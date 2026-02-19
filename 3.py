@@ -365,222 +365,245 @@
 
 
 
-import streamlit as st
-import pandas as pd
-from datetime import date
-import plotly.express as px
-import streamlit.components.v1 as components
-import time
+# import streamlit as st
+# import pandas as pd
+# from datetime import date
+# import plotly.express as px
+# import streamlit.components.v1 as components
+# import time
 
-# ================= CONFIG =================
-st.set_page_config(
-    page_title="TWS Project – Exports",
-    layout="wide",
-    page_icon="🚜"
-)
+# # ================= CONFIG =================
+# st.set_page_config(
+#     page_title="TWS Project – Exports",
+#     layout="wide",
+#     page_icon="🚜"
+# )
 
-DATA_FILE = "tws_exports.csv"
+# DATA_FILE = "tws_exports.csv"
 
-COLUMNS = [
-    "Email","Project Code","Project Description","Start of Project","Platform",
-    "Continent/Country","SCR No","SCR Issue in CFT","Model","Aggregate",
-    "Aggregate Lead","Implementation Month","R&D PMO",
-    "Feasibility Study","G1 Drg Release","Material Avl","Proto Fitment",
-    "Testing Start","Interim Testing Go Ahead","G1 ORC Drg Release",
-    "G1 ORC Material Avl","G1 ORC Proto Fitment","G2 Go Ahead",
-    "G2 Material Avl","5 Tractors Making on line","PRR Sing-Off 5 nos",
-    "Pre ERN","Go Ahead ERN","BOM Change",
-    "BCR Number","BCR Date","Cut-off Number",
-    "Status","Due Date"
-]
+# COLUMNS = [
+#     "Email","Project Code","Project Description","Start of Project","Platform",
+#     "Continent/Country","SCR No","SCR Issue in CFT","Model","Aggregate",
+#     "Aggregate Lead","Implementation Month","R&D PMO",
+#     "Feasibility Study","G1 Drg Release","Material Avl","Proto Fitment",
+#     "Testing Start","Interim Testing Go Ahead","G1 ORC Drg Release",
+#     "G1 ORC Material Avl","G1 ORC Proto Fitment","G2 Go Ahead",
+#     "G2 Material Avl","5 Tractors Making on line","PRR Sing-Off 5 nos",
+#     "Pre ERN","Go Ahead ERN","BOM Change",
+#     "BCR Number","BCR Date","Cut-off Number",
+#     "Status","Due Date"
+# ]
 
-# ================= STYLE =================
-st.markdown("""
-<style>
-.stApp { background:#f8fafc; font-family:Poppins,sans-serif; }
-h1,h2,h3 { font-weight:700 }
-.fired-alert{
-    background:#fee2e2;
-    color:#991b1b;
-    padding:12px;
-    border-left:5px solid #dc2626;
-    border-radius:6px;
-    margin-bottom:12px;
-}
-</style>
-""", unsafe_allow_html=True)
+# # ================= STYLE =================
+# st.markdown("""
+# <style>
+# .stApp { background:#f8fafc; font-family:Poppins,sans-serif; }
+# h1,h2,h3 { font-weight:700 }
+# .fired-alert{
+#     background:#fee2e2;
+#     color:#991b1b;
+#     padding:12px;
+#     border-left:5px solid #dc2626;
+#     border-radius:6px;
+#     margin-bottom:12px;
+# }
+# </style>
+# """, unsafe_allow_html=True)
 
-# ================= HELPERS =================
-def load_data():
-    try:
-        df = pd.read_csv(DATA_FILE)
-    except:
-        df = pd.DataFrame(columns=COLUMNS)
+# # ================= HELPERS =================
+# def load_data():
+#     try:
+#         df = pd.read_csv(DATA_FILE)
+#     except:
+#         df = pd.DataFrame(columns=COLUMNS)
 
-    for c in COLUMNS:
-        if c not in df.columns:
-            df[c] = ""
+#     for c in COLUMNS:
+#         if c not in df.columns:
+#             df[c] = ""
 
-    df = df.fillna("")
+#     df = df.fillna("")
 
-    def fired(row):
-        if row["Status"].lower() != "completed" and row["Due Date"]:
-            try:
-                return pd.to_datetime(row["Due Date"]).date() < date.today()
-            except:
-                return False
-        return False
+#     def fired(row):
+#         if row["Status"].lower() != "completed" and row["Due Date"]:
+#             try:
+#                 return pd.to_datetime(row["Due Date"]).date() < date.today()
+#             except:
+#                 return False
+#         return False
 
-    df["is_fired"] = df.apply(fired, axis=1)
-    return df
+#     df["is_fired"] = df.apply(fired, axis=1)
+#     return df
 
-def save_data(df):
-    out = df.copy()
-    if "is_fired" in out.columns:
-        out.drop(columns=["is_fired"], inplace=True)
-    out.to_csv(DATA_FILE, index=False)
+# def save_data(df):
+#     out = df.copy()
+#     if "is_fired" in out.columns:
+#         out.drop(columns=["is_fired"], inplace=True)
+#     out.to_csv(DATA_FILE, index=False)
 
-# ================= MAIN =================
-def main():
-    st.title("TWS Project Exports")
+# # ================= MAIN =================
+# def main():
+#     st.title("TWS Project Exports")
 
-    df = load_data()
-    fired_count = int(df["is_fired"].sum()) if not df.empty else 0
+#     df = load_data()
+#     fired_count = int(df["is_fired"].sum()) if not df.empty else 0
 
-    if fired_count:
-        st.markdown(
-            f'<div class="fired-alert">🔥 {fired_count} FIRED PROJECTS (Overdue)</div>',
-            unsafe_allow_html=True
-        )
+#     if fired_count:
+#         st.markdown(
+#             f'<div class="fired-alert">🔥 {fired_count} FIRED PROJECTS (Overdue)</div>',
+#             unsafe_allow_html=True
+#         )
 
-    tab1, tab2, tab3 = st.tabs(["📝 Form","📊 Dashboard","🗃️ Database"])
+#     tab1, tab2, tab3 = st.tabs(["📝 Form","📊 Dashboard","🗃️ Database"])
 
-    # ================= FORM =================
-    with tab1:
-        with st.form("project_form"):
-            st.markdown("## 📋 Basic Details")
-            c1,c2,c3 = st.columns(3)
-            email = c1.text_input("Email")
-            code = c1.text_input("Project Code")
-            desc = c1.text_area("Description")
-            start = c1.date_input("Start Date", value=None)
+#     # ================= FORM =================
+#     with tab1:
+#         with st.form("project_form"):
+#             st.markdown("## 📋 Basic Details")
+#             c1,c2,c3 = st.columns(3)
+#             email = c1.text_input("Email")
+#             code = c1.text_input("Project Code")
+#             desc = c1.text_area("Description")
+#             start = c1.date_input("Start Date", value=None)
 
-            platform = c2.selectbox("Platform",["Below 30 HP","30–60 HP","60–101 HP","Above 101 HP"])
-            country = c2.text_input("Country")
-            status = c2.selectbox("Status",["Pending","In Progress","Completed"])
+#             platform = c2.selectbox("Platform",["Below 30 HP","30–60 HP","60–101 HP","Above 101 HP"])
+#             country = c2.text_input("Country")
+#             status = c2.selectbox("Status",["Pending","In Progress","Completed"])
 
-            model = c3.text_input("Model")
-            owner = c3.text_input("Owner")
-            due = c3.date_input("Due Date", value=None)
+#             model = c3.text_input("Model")
+#             owner = c3.text_input("Owner")
+#             due = c3.date_input("Due Date", value=None)
 
-            st.markdown("## 🏗️ Milestones")
-            m1,m2,m3 = st.columns(3)
-            g1 = m1.date_input("G1 Drg Release", value=None)
-            mat = m1.date_input("Material Avl", value=None)
-            proto = m1.date_input("Proto Fitment", value=None)
+#             st.markdown("## 🏗️ Milestones")
+#             m1,m2,m3 = st.columns(3)
+#             g1 = m1.date_input("G1 Drg Release", value=None)
+#             mat = m1.date_input("Material Avl", value=None)
+#             proto = m1.date_input("Proto Fitment", value=None)
 
-            g2 = m2.date_input("G2 Go Ahead", value=None)
-            trac = m2.date_input("5 Tractors Online", value=None)
+#             g2 = m2.date_input("G2 Go Ahead", value=None)
+#             trac = m2.date_input("5 Tractors Online", value=None)
 
-            prr = m3.date_input("PRR Signoff", value=None)
+#             prr = m3.date_input("PRR Signoff", value=None)
 
-            st.markdown("## 📈 Implementation")
-            i1,i2,i3 = st.columns(3)
-            bcr = i1.text_input("BCR Number")
-            bcrd = i2.date_input("BCR Date", value=None)
-            cut = i3.text_input("Cut-off Number")
+#             st.markdown("## 📈 Implementation")
+#             i1,i2,i3 = st.columns(3)
+#             bcr = i1.text_input("BCR Number")
+#             bcrd = i2.date_input("BCR Date", value=None)
+#             cut = i3.text_input("Cut-off Number")
 
-            submit = st.form_submit_button("Save Project")
+#             submit = st.form_submit_button("Save Project")
 
-            if submit:
-                if not email or not code:
-                    st.error("Email & Project Code required")
-                    st.stop()
+#             if submit:
+#                 if not email or not code:
+#                     st.error("Email & Project Code required")
+#                     st.stop()
 
-                def f(d): return d.strftime("%Y-%m-%d") if d else ""
+#                 def f(d): return d.strftime("%Y-%m-%d") if d else ""
 
-                row = {
-                    "Email":email,
-                    "Project Code":code,
-                    "Project Description":desc,
-                    "Start of Project":f(start),
-                    "Platform":platform,
-                    "Continent/Country":country,
-                    "Model":model,
-                    "Aggregate Lead":owner,
-                    "Status":status,
-                    "Due Date":f(due),
-                    "G1 Drg Release":f(g1),
-                    "Material Avl":f(mat),
-                    "Proto Fitment":f(proto),
-                    "G2 Go Ahead":f(g2),
-                    "5 Tractors Making on line":f(trac),
-                    "PRR Sing-Off 5 nos":f(prr),
-                    "BCR Number":bcr,
-                    "BCR Date":f(bcrd),
-                    "Cut-off Number":cut
-                }
+#                 row = {
+#                     "Email":email,
+#                     "Project Code":code,
+#                     "Project Description":desc,
+#                     "Start of Project":f(start),
+#                     "Platform":platform,
+#                     "Continent/Country":country,
+#                     "Model":model,
+#                     "Aggregate Lead":owner,
+#                     "Status":status,
+#                     "Due Date":f(due),
+#                     "G1 Drg Release":f(g1),
+#                     "Material Avl":f(mat),
+#                     "Proto Fitment":f(proto),
+#                     "G2 Go Ahead":f(g2),
+#                     "5 Tractors Making on line":f(trac),
+#                     "PRR Sing-Off 5 nos":f(prr),
+#                     "BCR Number":bcr,
+#                     "BCR Date":f(bcrd),
+#                     "Cut-off Number":cut
+#                 }
 
-                if code in df["Project Code"].values:
-                    df.loc[df["Project Code"]==code, row.keys()] = row.values()
-                else:
-                    df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+#                 if code in df["Project Code"].values:
+#                     df.loc[df["Project Code"]==code, row.keys()] = row.values()
+#                 else:
+#                     df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
 
-                save_data(df)
-                st.success("Saved Successfully")
-                time.sleep(1)
-                st.rerun()
+#                 save_data(df)
+#                 st.success("Saved Successfully")
+#                 time.sleep(1)
+#                 st.rerun()
 
-    # ================= DASHBOARD =================
-    with tab2:
-        if not df.empty:
-            c1,c2,c3 = st.columns(3)
-            c1.metric("Total",len(df))
-            c2.metric("Fired",fired_count)
-            c3.metric("Completed",len(df[df["Status"]=="Completed"]))
+#     # ================= DASHBOARD =================
+#     with tab2:
+#         if not df.empty:
+#             c1,c2,c3 = st.columns(3)
+#             c1.metric("Total",len(df))
+#             c2.metric("Fired",fired_count)
+#             c3.metric("Completed",len(df[df["Status"]=="Completed"]))
 
-            fig = px.bar(df["Platform"].value_counts(), title="Projects by Platform")
-            st.plotly_chart(fig, use_container_width=True)
+#             fig = px.bar(df["Platform"].value_counts(), title="Projects by Platform")
+#             st.plotly_chart(fig, use_container_width=True)
 
-    # ================= DATABASE =================
-    with tab3:
-        st.subheader("Professional Database")
+#     # ================= DATABASE =================
+#     with tab3:
+#         st.subheader("Professional Database")
 
-        search = st.text_input("Search")
-        view = df.copy()
+#         search = st.text_input("Search")
+#         view = df.copy()
 
-        if search:
-            view = view[view.astype(str).apply(
-                lambda x: x.str.contains(search,case=False)
-            ).any(axis=1)]
+#         if search:
+#             view = view[view.astype(str).apply(
+#                 lambda x: x.str.contains(search,case=False)
+#             ).any(axis=1)]
 
-        rows = ""
-        for _,r in view.iterrows():
-            fired = r["is_fired"]
-            stat = "FIRED" if fired else r["Status"]
-            badge = "#fee2e2" if fired else "#e2e8f0"
-            rows += f"""
-            <tr style="{'text-decoration:line-through;' if fired else ''}">
-              <td><span style="background:{badge};padding:4px 8px;border-radius:4px">{stat}</span></td>
-              <td>{r['Project Code']}</td>
-              <td>{r['Email']}</td>
-              <td>{r['Platform']}</td>
-              <td>{r['Model']}</td>
-              <td>{r['Aggregate Lead']}</td>
-              <td>{r['Due Date'] or '—'}</td>
-            </tr>
-            """
+#         rows = ""
+#         for _,r in view.iterrows():
+#             fired = r["is_fired"]
+#             stat = "FIRED" if fired else r["Status"]
+#             badge = "#fee2e2" if fired else "#e2e8f0"
+#             rows += f"""
+#             <tr style="{'text-decoration:line-through;' if fired else ''}">
+#               <td><span style="background:{badge};padding:4px 8px;border-radius:4px">{stat}</span></td>
+#               <td>{r['Project Code']}</td>
+#               <td>{r['Email']}</td>
+#               <td>{r['Platform']}</td>
+#               <td>{r['Model']}</td>
+#               <td>{r['Aggregate Lead']}</td>
+#               <td>{r['Due Date'] or '—'}</td>
+#             </tr>
+#             """
 
-        st.markdown(f"""
-        <table border="1" style="width:100%;border-collapse:collapse">
-        <tr><th>Status</th><th>Code</th><th>Email</th><th>Platform</th>
-            <th>Model</th><th>Owner</th><th>Due</th></tr>
-        {rows}
-        </table>
-        """, unsafe_allow_html=True)
+#         st.markdown(f"""
+#         <table border="1" style="width:100%;border-collapse:collapse">
+#         <tr><th>Status</th><th>Code</th><th>Email</th><th>Platform</th>
+#             <th>Model</th><th>Owner</th><th>Due</th></tr>
+#         {rows}
+#         </table>
+#         """, unsafe_allow_html=True)
 
-        st.download_button("Download CSV", view.to_csv(index=False), "tws_data.csv")
+#         st.download_button("Download CSV", view.to_csv(index=False), "tws_data.csv")
 
-# ================= RUN =================
-if __name__ == "__main__":
-    main()
+# # ================= RUN =================
+# if __name__ == "__main__":
+#     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
