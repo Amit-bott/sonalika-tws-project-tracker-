@@ -1582,8 +1582,3 @@
 #     }, 30000); // 30 seconds
 # </script>
 # """, unsafe_allow_html=True)
-
-
-
-
-
